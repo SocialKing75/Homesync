@@ -72,6 +72,7 @@ from backend.auth.routes import router as auth_router, get_optional_user
 from backend.auth.likes import router as likes_router, dislikes_router, disliked_ids
 from backend.chat.routes import router as chat_router
 from backend.dossier.routes import router as dossier_router, candidatures_router
+from backend.matching.routes import router as matching_router
 
 app.include_router(auth_router)
 app.include_router(likes_router)
@@ -79,6 +80,7 @@ app.include_router(dislikes_router)
 app.include_router(chat_router)
 app.include_router(dossier_router)
 app.include_router(candidatures_router)
+app.include_router(matching_router)
 
 # Singleton service instance
 service = PropertyService()

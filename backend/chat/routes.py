@@ -24,6 +24,7 @@ from backend.auth.db import connect
 from backend.auth.likes import disliked_ids
 from backend.auth.routes import get_current_user, get_optional_user
 from backend.chat import agent
+from backend.matching.routes import gouts
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -80,7 +81,7 @@ def resultats(search_id: str, a_swiper: bool = False, user=Depends(get_current_u
     if a_swiper:
         with connect() as conn:
             exclure |= {r["annonce_id"] for r in conn.execute("SELECT annonce_id FROM likes WHERE user_id = ?", (user["id"],))}
-    data = agent.charger_recherche(search_id, user["id"], exclure)
+    data = agent.charger_recherche(search_id, user["id"], exclure, gouts(user["id"]))
     if data is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Recherche introuvable.")
     return data

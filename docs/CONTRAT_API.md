@@ -114,7 +114,7 @@ Sortie :
 ### `GET /api/chat/resultats/{search_id}` 🔐✉
 
 Paramètre `?a_swiper=true` : retire aussi les annonces déjà likées (pour le swipe). Les dislikes sont toujours retirés.
-Réponse : `{search_id, criteres, annonces: [annonce complète, …]}` · `404` recherche inconnue.
+Réponse : `{search_id, criteres, annonces: [annonce complète + match, …]}` triées par score de matching décroissant (voir § 7 bis) · `404` recherche inconnue.
 
 ---
 
@@ -211,6 +211,48 @@ Sécurité (déjà assurée par le back, à rappeler dans l'UI) : fichiers chiff
 
 ---
 
+## 7 bis. Matching demande ↔ annonce
+
+### `POST /api/matching` 🔐✉
+
+```json
+{ "villes": ["Lyon", "Nantes"], "type_bien": "Appartement", "pieces": 3, "budget_max": 300000,
+  "surface_min": 60, "quartiers": [], "texte": "calme, lumineux, avec terrasse", "limite": 20 }
+```
+Tous les champs sont facultatifs. `villes` : 3 max (filtre strict) · `type_bien` : `"Appartement"` ou `"Maison"` · `texte` : 500 caractères max · `limite` : 1 à 50 (défaut 20).
+Réponse : `[annonce complète + match]` triées par score décroissant. Dislikes exclus.
+
+### Objet `match` (aussi présent dans `GET /api/chat/resultats/{id}`)
+
+```json
+{
+  "score": 86,
+  "detail": [
+    { "critere": "budget",       "points": 25,   "max": 25, "explication": "270 000 €, dans le budget (400 000 €)" },
+    { "critere": "type",         "points": 20,   "max": 20, "explication": "Appartement T3 — souhaité : Appartement T3" },
+    { "critere": "envies",       "points": 13.3, "max": 20, "explication": "Ressemblance avec votre description : 52% (comparée aux autres annonces) · terrasse ✗" },
+    { "critere": "localisation", "points": 15,   "max": 15, "explication": "Marseille · Vieille Chapelle" },
+    { "critere": "surface",      "points": 10,   "max": 10, "explication": "74 m²" },
+    { "critere": "marche",       "points": 9,    "max": 10, "explication": "3 671 €/m², 11% sous la médiane de Marseille" }
+  ]
+}
+```
+
+| Critère | Max | Calcul |
+|---|---|---|
+| `budget` | 25 | prix ≤ budget : 25 · dégressif jusqu'à +10 % · 0 au-delà |
+| `type` | 20 | bon type : 10 · bon nombre de pièces : 10 (±1 pièce : 5) |
+| `envies` | 20 | ressemblance sémantique du texte libre, relative aux autres annonces : 14 · équipements demandés présents (jardin, terrasse/balcon, piscine) : 6 |
+| `localisation` | 15 | quartier souhaité : 15 · autre quartier : 7 |
+| `surface` | 10 | ≥ surface min : 10 · moins de 10 % en dessous : 5 |
+| `marche` | 10 | prix au m² ≤ 85 % de la médiane de la ville : 10 · ≥ 115 % : 0 · pas de référence : 5 |
+
+- **Un critère non renseigné donne tous ses points** (il ne pénalise personne).
+- Les **likes gold** de l'utilisateur servent de goûts : leurs titres sont ajoutés au texte de la ressemblance.
+- Libellés conseillés pour l'UI : Budget, Type & pièces, Vos envies, Localisation, Surface, Prix du marché.
+
+---
+
 ## 8. Dashboard historique (inchangé)
 
 | Méthode | Route | Accès | Rôle |
@@ -234,13 +276,13 @@ Sans `ADMIN_TOKEN` dans le `.env`, ces routes sont désactivées. Pas d'usage pr
 ## 10. Parcours de référence
 
 1. **Landing → compte** : `POST /api/chat` (jusqu'à `resultats`) → `POST /api/auth/register` → email → page `/verifier-email` (`POST /api/auth/verify-email`) → `POST /api/auth/login` → stocker le jeton (`setToken`).
-2. **Swipe** : `GET /api/chat/resultats/{id}?a_swiper=true` → à chaque carte `PUT /api/likes/{id}/classique|gold` ou `PUT /api/dislikes/{id}`.
+2. **Swipe** : `GET /api/chat/resultats/{id}?a_swiper=true` (déjà triées par `match.score`, badge « X % match ») → à chaque carte `PUT /api/likes/{id}/classique|gold` ou `PUT /api/dislikes/{id}`.
 3. **Coups de cœur → candidature** : `GET /api/likes` + `GET /api/candidatures` → fiche → `POST /api/candidatures` → si `400`, `GET /api/dossier`, `PUT /api/dossier/profil`, `POST /api/dossier/documents`… → `POST /api/candidatures`.
 4. **Carte** : `GET /api/likes/ids` → marqueur différent pour `classique` et `gold`.
 
 ## 11. Côté front : déjà fait / à faire
 
-Déjà fait (à réutiliser, pas à refaire) : `src/api.js` (`api`, `apiUpload`, `apiDownload`, `errorText`, jeton), `ChatAgent` (chat + création de compte), `MicButton` (dictée), `pages/VerifierEmail`, `pages/Decouvrir` (swipe), onglet « Coups de cœur » du dashboard (`CoupsDeCoeur` : fiche, candidature) et `Dossier` (checklist + dépôt + export).
+Déjà fait (à réutiliser, pas à refaire) : `src/api.js` (`api`, `apiUpload`, `apiDownload`, `errorText`, jeton), `ChatAgent` (chat + création de compte), `MicButton` (dictée), `pages/VerifierEmail`, `pages/Decouvrir` (swipe + badge et détail du match), onglet « Coups de cœur » du dashboard (`CoupsDeCoeur` : fiche, candidature) et `Dossier` (checklist + dépôt + export).
 
 À faire, proposition de répartition :
 

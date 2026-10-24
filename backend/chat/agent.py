@@ -218,19 +218,21 @@ def rechercher(c: dict, requete: str, exclure: set[str] = frozenset()) -> tuple[
     return [], None
 
 
-def enregistrer_recherche(session_id: str, c: dict, annonces: list[dict]) -> str:
+def enregistrer_recherche(session_id: str, c: dict, annonces: list[dict], texte: str = "") -> str:
+    """`texte` : ce que l'utilisateur a écrit (données perso déjà masquées), pour le matching."""
     search_id = crypto.new_token()
     with connect() as conn:
         conn.execute(
             "INSERT INTO chat_searches (search_id, session_id, criteres, annonce_ids, created_at) VALUES (?, ?, ?, ?, ?)",
-            (search_id, session_id, json.dumps(c, ensure_ascii=False),
+            (search_id, session_id, json.dumps({**c, "texte": texte[:500]}, ensure_ascii=False),
              json.dumps([a["id_source"] for a in annonces]), datetime.now(timezone.utc).isoformat()),
         )
     return search_id
 
 
-def charger_recherche(search_id: str, user_id: int, exclure: set[str] = frozenset()) -> dict | None:
-    """Résultats complets d'une recherche (hors `exclure`) ; la rattache au compte qui la consulte."""
+def charger_recherche(search_id: str, user_id: int, exclure: set[str] = frozenset(), gouts: str = "") -> dict | None:
+    """Résultats complets d'une recherche (hors `exclure`), classés par score de matching
+    (champ `match` de chaque annonce) ; rattache la recherche au compte qui la consulte."""
     with connect() as conn:
         row = conn.execute("SELECT * FROM chat_searches WHERE search_id = ?", (search_id,)).fetchone()
         if not row:
@@ -239,7 +241,9 @@ def charger_recherche(search_id: str, user_id: int, exclure: set[str] = frozense
             conn.execute("UPDATE chat_searches SET user_id = ? WHERE search_id = ?", (user_id, search_id))
     par_id = _annonces_par_id()
     annonces = [par_id[i] for i in json.loads(row["annonce_ids"]) if i in par_id and i not in exclure]
-    return {"search_id": search_id, "criteres": json.loads(row["criteres"]), "annonces": annonces}
+    criteres = json.loads(row["criteres"])
+    from backend.matching.scoring import matcher  # import local : matching dépend du chat (normalisation)
+    return {"search_id": search_id, "criteres": criteres, "annonces": matcher(criteres, annonces, gouts)}
 
 
 def _apercu(annonces: list[dict]) -> dict:
@@ -340,7 +344,7 @@ def _repondre(s: dict, session_id: str, message: str, exclure: set[str], connect
             c, [], SUGGESTIONS_AUCUN,
         )
 
-    search_id = enregistrer_recherche(session_id, c, annonces)
+    search_id = enregistrer_recherche(session_id, c, annonces, " ".join(s["textes"]))
     apercu = _apercu(annonces)
     n = apercu["count"]
     texte = (

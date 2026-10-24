@@ -10,6 +10,7 @@ import './Decouvrir.css';
    • clavier : ← dislike, → like, ↑ infos, Entrée gold */
 
 const SEUIL_SWIPE = 110;
+const LIBELLES = { budget: 'Budget', type: 'Type & pièces', envies: 'Vos envies', localisation: 'Localisation', surface: 'Surface', marche: 'Prix du marché' };
 const fmtPrix = (n) => (n ? `${Math.round(n).toLocaleString('fr-FR')} €` : 'Prix N/C');
 
 export default function Decouvrir() {
@@ -159,6 +160,10 @@ export default function Decouvrir() {
             </div>
           )}
 
+          {annonce.match && (
+            <div className={`swipe-match${annonce.match.score >= 80 ? ' fort' : ''}`}>{annonce.match.score} % match</div>
+          )}
+
           {tampon && <div className={`swipe-tampon ${tampon}`}>{{ like: 'J’AIME', gold: 'GOLD', dislike: 'NON' }[tampon]}</div>}
 
           <div className="swipe-legende">
@@ -185,6 +190,19 @@ export default function Decouvrir() {
                 {annonce.terrasse && <span>☀️ Terrasse</span>}
                 {annonce.piscine && <span>🏊 Piscine</span>}
               </div>
+              {annonce.match && (
+                <div className="swipe-pourquoi">
+                  <p className="swipe-pourquoi-titre">Pourquoi {annonce.match.score} % de match</p>
+                  {annonce.match.detail.map(d => (
+                    <div key={d.critere} className="swipe-critere">
+                      <span className="swipe-critere-nom">{LIBELLES[d.critere]}</span>
+                      <span className="swipe-critere-barre"><span style={{ width: `${(d.points / d.max) * 100}%` }} /></span>
+                      <span className="swipe-critere-pts">{Math.round(d.points)}/{d.max}</span>
+                      <span className="swipe-critere-explication">{d.explication}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <p className="swipe-description">{annonce.description || 'Pas de description.'}</p>
               <a href={annonce.url_source} target="_blank" rel="noreferrer" className="swipe-lien">Voir l'annonce complète ↗</a>
             </div>

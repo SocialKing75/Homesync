@@ -119,6 +119,52 @@
 .swipe-tampon.dislike { right: 22px; color: #ef4444; border-color: #ef4444; transform: rotate(14deg); }
 .swipe-tampon.gold { left: 50%; color: #f5b301; border-color: #f5b301; transform: translateX(-50%); }
 
+.swipe-match {
+  position: absolute;
+  top: 22px;
+  right: 14px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  backdrop-filter: blur(6px);
+}
+
+.swipe-match.fort { background: var(--green); }
+
+.swipe-pourquoi {
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+
+.swipe-pourquoi-titre {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.swipe-critere {
+  display: grid;
+  grid-template-columns: 96px 1fr 42px;
+  align-items: center;
+  column-gap: 8px;
+  padding: 5px 0;
+  font-size: 12px;
+}
+
+.swipe-critere-nom { font-weight: 700; color: var(--text-dark); }
+.swipe-critere-barre { height: 6px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+.swipe-critere-barre span { display: block; height: 100%; background: var(--green); }
+.swipe-critere-pts { text-align: right; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.swipe-critere-explication { grid-column: 1 / -1; color: var(--text-muted); margin-top: 2px; }
+
 .swipe-legende {
   position: absolute;
   left: 0;
