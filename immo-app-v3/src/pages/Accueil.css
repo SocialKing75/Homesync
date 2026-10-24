@@ -1,0 +1,351 @@
+/* ════ ACCUEIL — FULL-BLEED MAP ════ */
+.accueil-root {
+  width: 100vw;
+  position: relative;
+  min-height: 100vh;
+}
+
+/* ── Floating Tab Bar ── */
+.tab-bar {
+  position: fixed;
+  top: 68px;
+  left: 24px;
+  z-index: 100;
+  display: flex;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.6);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.tab-btn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: #0f172a; }
+.tab-btn.active {
+  background: #0f172a;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* ── Full-bleed map ── */
+.carte-fullscreen {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 10;
+}
+
+.full-map {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* ── Price Bubble Markers ── */
+.price-bubble {
+  background: #ff5722;
+  color: white;
+  border-radius: 24px;
+  padding: 6px 14px;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(255, 87, 34, 0.4);
+  border: 2.5px solid white;
+  transition: transform 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.price-bubble:hover {
+  transform: scale(1.15);
+  box-shadow: 0 6px 24px rgba(255, 87, 34, 0.55);
+  z-index: 10;
+}
+
+.pb-price {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* ══════ FLOATING LEFT PANEL ══════ */
+.overlay-left {
+  position: fixed;
+  top: 110px;
+  left: 24px;
+  width: 280px;
+  z-index: 90;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.5) inset,
+    0 8px 32px rgba(0,0,0,0.1);
+}
+
+.ol-quartier {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.ol-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.ol-prix {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.ol-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.badge-green { background: #dcfce7; color: #166534; }
+.badge-red { background: #fee2e2; color: #991b1b; }
+
+.ol-delai {
+  font-size: 12px;
+  color: #10b981;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* Mini chart */
+.ol-chart {
+  margin-bottom: 12px;
+}
+.ol-svg {
+  width: 100%;
+  height: 50px;
+}
+.ol-chart-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+/* Filter pills */
+.ol-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.ol-pill {
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+/* ══════ FLOATING RIGHT PANEL ══════ */
+.overlay-right {
+  position: fixed;
+  top: 68px;
+  right: 16px;
+  width: 300px;
+  z-index: 90;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.5) inset,
+    0 8px 32px rgba(0,0,0,0.1);
+  max-height: calc(100vh - 84px);
+  overflow-y: auto;
+}
+
+.or-close {
+  position: absolute;
+  top: 10px; right: 14px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #94a3b8;
+  cursor: pointer;
+  font-weight: 700;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.or-close:hover { color: #0f172a; }
+
+.or-logo-row {
+  display: flex;
+  margin-bottom: 10px;
+}
+.or-logo {
+  height: 22px;
+  opacity: 0.7;
+}
+
+.or-img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.or-type {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 2px;
+}
+
+.or-meta {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 10px;
+}
+
+.or-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.or-price {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.or-score {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ff5722;
+  background: #fff7ed;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.or-invest {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.invest-good { color: #10b981; }
+.invest-bad { color: #ef4444; }
+.invest-ok { color: #64748b; }
+
+.or-bar-track {
+  height: 5px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.or-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #0ea5e9);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.or-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 14px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.or-cta {
+  width: 100%;
+  padding: 12px;
+  background: #ff5722;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.or-cta:hover { background: #e64a19; }
+
+/* ── Analyse wrapper ── */
+.analyse-wrapper {
+  padding: 140px 24px 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 50; /* Above the map */
+}
+
+/* ── Mapbox overrides ── */
+.mapboxgl-popup-content {
+  border-radius: 14px !important;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12) !important;
+  padding: 10px !important;
+  background: rgba(255,255,255,0.95) !important;
+}
+.mapboxgl-ctrl-group {
+  border-radius: 10px !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08) !important;
+  background: rgba(255,255,255,0.85) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* ── Custom Map Legend (from carte_toulon_project) ── */
+.map-legend {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  z-index: 10;
+  border: 1px solid rgba(255,255,255,0.8);
+}
+.legend-title { font-size: 13px; font-weight: 800; margin-bottom: 8px; text-align: center; color: #333; }
+.legend-gradient {
+  height: 12px; width: 250px; border-radius: 6px;
+  /* Nouveau dégradé ultra-saturé de la maquette */
+  background: linear-gradient(to right, #318239, #8dc63f, #fcd34d, #f58e42, #ea3724, #a81111);
+}
+.legend-labels {
+  display: flex; justify-content: space-between; font-size: 12px; margin-top: 6px; color: #333; font-weight: 700;
+}

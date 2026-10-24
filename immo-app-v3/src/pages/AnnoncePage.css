@@ -1,0 +1,402 @@
+/* ════ ANNONCE PAGE — SPLIT LAYOUT ════ */
+.ap-wrapper { min-height: 100vh; background: #f8fafc; }
+
+.ap-content {
+  padding: 76px 24px 48px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Back */
+.ap-back {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 16px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+.ap-back:hover { color: #ff5722; background: #fff7ed; }
+
+/* ── Split Layout ── */
+.ap-split {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .ap-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ═══ LEFT COLUMN ═══ */
+.ap-left { display: flex; flex-direction: column; gap: 20px; }
+
+/* Hero */
+.ap-hero {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  height: 360px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+.ap-hero img { width: 100%; height: 100%; object-fit: cover; }
+
+.ap-hero-overlay {
+  position: absolute;
+  top: 16px; left: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.ap-al-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 20px;
+}
+.ap-al-ach { background: rgba(219,234,254,0.9); color: #1d4ed8; }
+.ap-al-loc { background: rgba(252,231,243,0.9); color: #be185d; }
+
+/* Stat Cards Grid */
+.ap-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.ap-scard {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+.ap-scard-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.ap-scard-value {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+.ap-scard-sub {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+.val-green { color: #10b981; }
+.val-red { color: #ef4444; }
+
+/* Score Section */
+.ap-score-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.ap-score-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.ap-score-title { font-size: 12px; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.06em; }
+.ap-score-total { font-size: 20px; font-weight: 800; }
+.score-txt-green  { color: #10b981; }
+.score-txt-yellow { color: #f59e0b; }
+.score-txt-red    { color: #ef4444; }
+
+.ap-score-bar-track {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+.ap-score-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+.fill-green  { background: #10b981; }
+.fill-yellow { background: #f59e0b; }
+.fill-red    { background: #ef4444; }
+
+/* Critères */
+.ap-criteria-list { display: flex; flex-direction: column; gap: 10px; }
+
+.ap-criterion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ap-criterion-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.ap-criterion-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-green  { background: #10b981; }
+.dot-yellow { background: #f59e0b; }
+.dot-red    { background: #ef4444; }
+
+.ap-criterion-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ap-criterion-detail {
+  font-size: 11px;
+  color: #94a3b8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ap-criterion-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.ap-crit-mini-track {
+  width: 60px; height: 4px;
+  background: #e2e8f0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.ap-crit-mini-fill { height: 100%; border-radius: 2px; }
+.ap-crit-pts {
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+  min-width: 28px;
+  text-align: right;
+}
+
+/* ═══ RIGHT COLUMN ═══ */
+.ap-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 80px;
+}
+
+/* Score Badge */
+.ap-score-badge {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  color: white;
+}
+.score-bg-green  { background: linear-gradient(135deg, #10b981, #059669); }
+.score-bg-yellow { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.score-bg-red    { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+.ap-score-badge-val { font-size: 48px; font-weight: 800; line-height: 1; }
+.ap-score-badge-label { font-size: 18px; font-weight: 600; opacity: 0.8; }
+
+/* Price Block */
+.ap-price-block {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+.ap-price {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  color: #ff5722;
+  line-height: 1;
+}
+.ap-prixm2 {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+/* Actions */
+.ap-actions {
+  display: flex;
+  gap: 8px;
+}
+.ap-fav-btn {
+  flex: 1;
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.ap-fav-btn:hover { border-color: #ef4444; color: #ef4444; }
+.ap-fav-active { background: #fee2e2; border-color: #ef4444; color: #dc2626; }
+
+.ap-link-btn {
+  flex: 1;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: #ff5722;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.ap-link-btn:hover { background: #e64a19; }
+
+/* Potential */
+.ap-potential {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+.ap-potential-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.ap-potential-value {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+}
+.ap-potential-sub {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+/* AI Valuation Box */
+.ap-ai-box {
+  border-radius: 14px;
+  padding: 20px;
+}
+.ai-box-green {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+.ai-box-red {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+.ai-box-neutral {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.ap-ai-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.ai-box-green .ap-ai-title { color: #166534; }
+.ai-box-red .ap-ai-title { color: #991b1b; }
+.ai-box-neutral .ap-ai-title { color: #64748b; }
+
+.ap-ai-text {
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.6;
+}
+
+.ap-ai-verdict {
+  font-weight: 700;
+  color: #166534;
+}
+.ap-ai-caution {
+  color: #991b1b;
+}
+.ap-ai-neutral {
+  color: #475569;
+}
+
+/* Details Card */
+.ap-details-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+.ap-details-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+.ap-details-type {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 14px;
+}
+
+.ap-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.ap-dg-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+.ap-dg-label { font-size: 11px; color: #94a3b8; font-weight: 600; }
+.ap-dg-val { font-size: 14px; font-weight: 700; color: #0f172a; }
+
+.ap-description {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.7;
+  padding: 14px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border-left: 3px solid #ff5722;
+}

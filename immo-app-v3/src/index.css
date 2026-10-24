@@ -1,0 +1,232 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;700&display=swap');
+
+:root {
+  /* Bright Premium Palette */
+  --bg-space: #f8fafc;
+  /* Crisp off-white */
+  --bg-card: #ffffff;
+  /* Solid white */
+  --bg-card-hover: #f1f5f9;
+
+  --text-main: #0f172a;
+  /* Deep slate */
+  --text-muted: #64748b;
+  --text-dark: #1e293b;
+
+  --border-light: rgba(15, 23, 42, 0.08);
+  /* Subtle dark border */
+  --border-glow: rgba(255, 87, 34, 0.15);
+
+  /* Accents */
+  --neon-orange: #ff5722;
+  --neon-orange-glow: rgba(255, 87, 34, 0.15);
+  --neon-blue: #0ea5e9;
+
+  --green: #10b981;
+  --red: #ef4444;
+
+  --radius-bento: 24px;
+  --radius-sm: 12px;
+
+  /* Soft Shadows */
+  --shadow-bento: 0 12px 48px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 8px 24px var(--neon-orange-glow);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--bg-space);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  /* Radial subtle mesh background */
+  background-image:
+    radial-gradient(circle at 15% 50%, rgba(14, 165, 233, 0.04), transparent 50%),
+    radial-gradient(circle at 85% 30%, rgba(255, 87, 34, 0.04), transparent 50%);
+  background-attachment: fixed;
+}
+
+/* Base resets */
+button {
+  font-family: 'Outfit', sans-serif;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+input,
+select {
+  font-family: 'DM Sans', sans-serif;
+  /* Keep DM Sans for inputs/numbers */
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+
+/* ════ BENTO BOX SYSTEM ════ */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-auto-flow: dense;
+  gap: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Variations sizes */
+.bento-wide {
+  grid-column: span 8;
+}
+
+.bento-square {
+  grid-column: span 4;
+}
+
+.bento-full {
+  grid-column: span 12;
+}
+
+.bento-tall {
+  grid-column: span 4;
+  grid-row: span 2;
+}
+
+@media (max-width: 1100px) {
+  .bento-wide {
+    grid-column: span 12;
+  }
+
+  .bento-square {
+    grid-column: span 6;
+  }
+
+  .bento-tall {
+    grid-column: span 6;
+    grid-row: span 1;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .bento-square,
+  .bento-tall {
+    grid-column: span 12;
+  }
+}
+
+/* Premium Card Material */
+.bento-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-bento);
+  padding: 28px;
+  box-shadow: var(--shadow-bento);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.bento-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-4px);
+}
+
+/* Glass Highlight Effect */
+.bento-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.bento-card:hover::before {
+  opacity: 1;
+}
+
+.bento-card.glow-orange:hover {
+  border-color: var(--border-glow);
+  box-shadow: var(--shadow-glow);
+}
+
+/* Typography Overhaul */
+.bento-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+.bento-value {
+  font-family: 'DM Sans', sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.bento-value.orange {
+  color: var(--neon-orange);
+}
+
+.bento-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+/* Animations (Staggered Load) */
+@keyframes bentoFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.bento-card {
+  animation: bentoFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.delay-1 {
+  animation-delay: 0.05s;
+}
+
+.delay-2 {
+  animation-delay: 0.1s;
+}
+
+.delay-3 {
+  animation-delay: 0.15s;
+}
+
+.delay-4 {
+  animation-delay: 0.2s;
+}
+
+.delay-5 {
+  animation-delay: 0.25s;
+}

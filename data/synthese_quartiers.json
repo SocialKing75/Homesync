@@ -1,0 +1,371 @@
+{
+  "Aguillon": {
+    "nb_annonces": 10,
+    "prix_m2_moyen": 3510,
+    "types": [
+      "appartement",
+      "maison"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier Aguillon à Toulon se caractérise par une offre immobilière variée, avec des appartements et quelques maisons, affichant un prix moyen au mètre carré de **3 510 €**, bien que les prix varient selon les biens (de 2 990 € à 4 312 €/m²). Ce secteur, dynamique et bien situé, attire des acquéreurs recherchant des logements spacieux, notamment des 3 et 4 pièces, avec des opportunités intéressantes pour les investisseurs et les primo-accédants. Son positionnement en fait un quartier résidentiel prisé, alliant accessibilité et qualité de vie."
+  },
+  "Barbès": {
+    "nb_annonces": 2,
+    "prix_m2_moyen": 2303,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier Barbès à Toulon se caractérise par une offre immobilière limitée, avec des appartements affichant un prix moyen au mètre carré de **2 303 €**, bien que les exemples observés varient entre **1 879 € et 2 727 €/m²**. Ce secteur, principalement résidentiel, propose des biens de type **3 et 4 pièces**, avec un positionnement accessible comparé à d'autres quartiers plus centraux. Son attractivité dépendra de sa localisation précise et des projets d'aménagement futurs."
+  },
+  "Beaulieu": {
+    "nb_annonces": 3,
+    "prix_m2_moyen": 4548,
+    "types": [
+      "appartement",
+      "maison"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier de Beaulieu à Toulon se distingue par une offre immobilière variée, incluant des appartements et des maisons, avec un prix moyen au mètre carré de **4 548 €**, bien que les maisons affichent des tarifs plus élevés (jusqu’à 6 049 €/m²). Ce secteur, dynamique et recherché, allie proximité des commodités et cadre résidentiel prisé, avec des biens allant de 2 780 €/m² pour les appartements à 6 049 €/m² pour les maisons."
+  },
+  "Bon Rencontre": {
+    "nb_annonces": 5,
+    "prix_m2_moyen": 2337,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier Bon Rencontre à Toulon se caractérise par une offre immobilière principalement composée d'appartements, avec un prix moyen au mètre carré de **2 337 €**, variant selon la surface et l'état des biens (de 1 910 € à 3 278 €/m²). Situé dans un secteur dynamique, il attire des acquéreurs recherchant des logements bien situés, avec des prix compétitifs par rapport à d'autres quartiers centraux de la ville."
+  },
+  "Bonfante-Florane": {
+    "nb_annonces": 1,
+    "prix_m2_moyen": 3214,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier Bonfante-Florane à Toulon se distingue par son offre immobilière récente, principalement composée d'appartements neufs (2 à 4 pièces) avec un prix moyen au m² de **3 214 €**, reflétant un positionnement attractif pour les acquéreurs en recherche de logements modernes. Situé dans un secteur en développement, ce quartier allie proximité des commodités et cadre résidentiel, idéal pour les familles ou investisseurs. La rareté des annonces (1 seule disponible) souligne une demande soutenue et un marché dynamique."
+  },
+  "Brunet": {
+    "nb_annonces": 5,
+    "prix_m2_moyen": 2752,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier Brunet à Toulon se caractérise par une offre immobilière principalement composée d'appartements, avec un prix moyen au mètre carré s'élevant à **2 752 €/m²**, reflétant un marché dynamique et attractif. Les biens disponibles, allant du studio au 5 pièces, affichent des prix variables selon la surface et l'agencement, positionnant ce secteur comme un quartier résidentiel prisé, à mi-chemin entre accessibilité et qualité de vie. Son attractivité s'explique par son cadre urbain et ses atouts locaux, en faisant un choix pertinent pour les acquéreurs recherchant un équilibre entre investissement et confort."
+  },
+  "Centre-ville": {
+    "nb_annonces": 9,
+    "prix_m2_moyen": 3359,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier **Centre-ville de Toulon** se caractérise par une offre immobilière principalement composée d'appartements, avec un prix moyen au mètre carré de **3 359 €**, variant selon la taille et l'état des biens (de 2 794 € à 3 708 €/m²). Dynamique et central, ce secteur attire les acquéreurs recherchant un cadre urbain privilégié, proche des commodités et des infrastructures. Les prix reflètent son attractivité, avec des biens souvent bien positionnés sur le marché toulonnais."
+  },
+  "Champs-de-Mars": {
+    "nb_annonces": 8,
+    "prix_m2_moyen": 3018,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier **Champs-de-Mars** à Toulon se distingue par son marché immobilier dynamique, principalement composé d’appartements, avec un prix moyen au mètre carré de **3 018 €**. Les prix varient selon la surface et l’agencement, oscillant entre **2 166 €/m²** pour les biens plus spacieux et **4 125 €/m²** pour les studios bien situés. Ce quartier, prisé pour son cadre résidentiel et sa proximité avec les commodités, offre un positionnement attractif pour les investisseurs et les acquéreurs en recherche d’un emplacement central."
+  },
+  "Claret": {
+    "nb_annonces": 6,
+    "prix_m2_moyen": 2871,
+    "types": [
+      "appartement",
+      "maison"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier Claret à Toulon se caractérise par une offre immobilière variée, avec des prix moyens au mètre carré autour de **2 871 €**, incluant des **maisons et appartements** de 2 à 6 pièces. Les transactions observées confirment une fourchette de **2 000 € à 3 000 €/m²**, selon la taille et le type de bien. Situé dans un environnement résidentiel, Claret offre un positionnement attractif pour les acquéreurs recherchant un cadre de vie calme tout en bénéficiant de la proximité des commodités toulonnaises."
+  },
+  "Corniche du Faron": {
+    "nb_annonces": 3,
+    "prix_m2_moyen": 3873,
+    "types": [
+      "appartement",
+      "maison"
+    ],
+    "synthese": "C'est le bien de vos rêves. La **Corniche du Faron** est un quartier prisé de Toulon, offrant des biens immobiliers haut de gamme avec un prix moyen au mètre carré de **3 873 €**, incluant des appartements et des maisons. Les annonces récentes confirment une fourchette allant de **3 623 € à 4 068 €/m²**, reflétant son attractivité et son positionnement résidentiel privilégié, proche des paysages méditerranéens. Ce secteur séduit les acquéreurs en quête d’un cadre exceptionnel et d’un investissement immobilier valorisé."
+  },
+  "Darboussèdes": {
+    "nb_annonces": 3,
+    "prix_m2_moyen": 4443,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier **Darboussèdes** à Toulon se caractérise par une offre immobilière limitée (3 annonces) composée exclusivement d'appartements, avec un prix moyen au mètre carré de **4 443 €**, reflétant un positionnement dynamique et attractif. Les biens disponibles, allant de 2 à 3 pièces, affichent des prix au m² variant entre **4 051 € et 4 686 €**, confirmant la valeur stable et recherchée de ce secteur résidentiel. Ce quartier semble cibler une clientèle en quête de logements bien situés, avec des prix alignés sur les standards toulonnais."
+  },
+  "Font Pré": {
+    "nb_annonces": 5,
+    "prix_m2_moyen": 3851,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. **Synthèse du quartier Font Pré à Toulon :**\nFont Pré se positionne comme un quartier résidentiel dynamique, principalement composé d'appartements, avec un prix moyen au mètre carré de **3 851 €**, bien que des variations significatives existent selon les biens (de 3 083 € à 4 722 €/m²). Les annonces disponibles, allant de 2 à 4 pièces, reflètent une offre variée, adaptée aux budgets intermédiaires et supérieurs, dans un cadre recherché pour son accessibilité et son cadre de vie."
+  },
+  "Haute-ville": {
+    "nb_annonces": 12,
+    "prix_m2_moyen": 3501,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. La **Haute-ville** à Toulon se distingue par son marché immobilier dynamique, centré sur des **appartements** avec un prix moyen au m² de **3 501 €**, variant selon la taille et l'état des biens (de 2 710 € à 5 463 €/m²). Ce quartier historique, proche du centre-ville, attire les acquéreurs recherchant un cadre authentique et une accessibilité optimale, avec des prix reflétant son attractivité et son patrimoine."
+  },
+  "Jonquet - Guynemer": {
+    "nb_annonces": 3,
+    "prix_m2_moyen": 2827,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier Jonquet - Guynemer à Toulon se caractérise par une offre immobilière limitée (3 annonces) composée exclusivement d'appartements, avec un prix moyen au mètre carré de **2 827 €**, variant entre **2 569 € et 2 998 €** selon les biens. Ce secteur, principalement axé sur des **3 pièces de 58 à 60 m²**, affiche des tarifs légèrement supérieurs à la moyenne toulonnaise, reflétant un positionnement attractif pour les acquéreurs recherchant un cadre résidentiel. La rareté des annonces suggère une demande soutenue dans ce quartier."
+  },
+  "L'Escaillon": {
+    "nb_annonces": 2,
+    "prix_m2_moyen": 3788,
+    "types": [
+      "maison"
+    ],
+    "synthese": "C'est le bien de vos rêves. **Synthèse du quartier L'Escaillon à Toulon :**\n\nL'Escaillon se positionne comme un quartier résidentiel prisé, principalement composé de maisons individuelles, avec un prix moyen au mètre carré de **3 788 €**, reflétant une offre limitée mais attractive. Les biens disponibles, comme les maisons de 3 pièces autour de **3 700 €/m²**, en font un secteur recherché pour son cadre de vie, bien que l'offre reste très restreinte. Ce positionnement en fait un quartier idéal pour les acquéreurs en quête de tranquillité et de qualité, malgré une rareté des annonces."
+  },
+  "La Chapelle - Saint-André": {
+    "nb_annonces": 1,
+    "prix_m2_moyen": 2414,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. **Synthèse du quartier La Chapelle - Saint-André à Toulon :**\n\nLe quartier La Chapelle - Saint-André se caractérise par une offre immobilière limitée, avec des appartements affichant un prix moyen de **2 414 €/m²**, comme illustré par un bien de 70 m² vendu à 169 000 €. Positionné comme un secteur résidentiel calme, il attire des acquéreurs recherchant des logements spacieux à des tarifs compétitifs par rapport à d'autres quartiers toulonnais. Son attractivité reste à confirmer en raison du faible volume de transactions disponibles."
+  },
+  "La Loubière": {
+    "nb_annonces": 4,
+    "prix_m2_moyen": 3546,
+    "types": [
+      "appartement",
+      "maison"
+    ],
+    "synthese": "C'est le bien de vos rêves. **Synthèse du quartier La Loubière à Toulon :**\nLa Loubière se caractérise par une offre immobilière variée, avec des appartements et maisons affichant un prix moyen au mètre carré de **3 546 €**, bien que des écarts significatifs existent (de 2 239 €/m² à 5 600 €/m² selon les biens). Ce quartier, positionné comme un secteur résidentiel accessible, attire des acquéreurs recherchant des logements familiaux ou des investissements locatifs, avec des prix globalement inférieurs à ceux des quartiers centraux de Toulon.\n\n*(Ton professionnel, synthèse concise et informative.)*"
+  },
+  "La Palasse": {
+    "nb_annonces": 7,
+    "prix_m2_moyen": 3888,
+    "types": [
+      "appartement",
+      "maison"
+    ],
+    "synthese": "C'est le bien de vos rêves. **Synthèse du quartier La Palasse à Toulon :**\n\nLa Palasse se positionne comme un quartier dynamique, principalement axé sur les appartements neufs (prix/m² variant entre 4 267 € et 4 975 €), avec quelques maisons à des tarifs plus accessibles (2 806 €/m²). Le prix moyen affiché (3 888 €/m²) reflète une offre équilibrée, alliant des biens récents et des opportunités résidentielles plus traditionnelles. Ce secteur attire autant les investisseurs que les acquéreurs en recherche de logements modernes, bénéficiant d’un cadre urbain bien desservi."
+  },
+  "La Rode": {
+    "nb_annonces": 5,
+    "prix_m2_moyen": 2940,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. **Synthèse du quartier La Rode à Toulon :**\n\nLa Rode se positionne comme un quartier résidentiel prisé, principalement composé d'appartements, avec un prix moyen au mètre carré de **2 940 €**, variant entre **2 711 € et 3 271 €** selon les biens. Les annonces disponibles, allant de 3 à 5 pièces, reflètent une offre diversifiée, adaptée aux familles et investisseurs recherchant un cadre urbain bien situé. Son attractivité s'explique par son accessibilité et son environnement dynamique, en faisant un secteur à fort potentiel immobilier."
+  },
+  "La Serinette - La Barre": {
+    "nb_annonces": 5,
+    "prix_m2_moyen": 3419,
+    "types": [
+      "appartement",
+      "maison"
+    ],
+    "synthese": "C'est le bien de vos rêves. **Synthèse du quartier La Serinette - La Barre à Toulon :**\nCe quartier offre une mixité de biens (appartements et maisons) avec un prix moyen au mètre carré de **3 419 €**, reflétant une attractivité modérée. Les prix varient selon les typologies, avec des maisons plus premium (jusqu’à **4 859 €/m²**) et des appartements autour de **3 000 €/m²**. Positionné comme un secteur résidentiel accessible, il séduit par son calme et sa proximité avec les commodités toulonnaises."
+  },
+  "Le Cap Brun - Le Petit Bois": {
+    "nb_annonces": 1,
+    "prix_m2_moyen": 4745,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. **Synthèse du quartier Le Cap Brun - Le Petit Bois à Toulon**\n\nLe Cap Brun - Le Petit Bois se positionne comme un quartier résidentiel prisé, avec des prix moyens élevés autour de **4 745 €/m²** pour des **appartements**, comme en témoigne l'exemple d'un 2 pièces à 242 000 €. Ce secteur allie cadre agréable et proximité des commodités, attirant une clientèle en quête de qualité de vie. La rareté des annonces (1 seule disponible) souligne un marché dynamique et sélectif."
+  },
+  "Le Fort Rouge": {
+    "nb_annonces": 1,
+    "prix_m2_moyen": 4500,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier **Le Fort Rouge** à Toulon se caractérise par une offre immobilière très limitée, avec un seul bien récent en vente : un appartement d'une pièce de 22 m² proposé à **4 500 €/m²**, reflétant un positionnement premium. Ce prix élevé suggère un quartier recherché, probablement en raison de sa localisation centrale ou de son attractivité. Les biens disponibles sont principalement des appartements, adaptés aux investisseurs ou aux acquéreurs en quête de surfaces compactes."
+  },
+  "Le Mourillon - La Mitre - Fort Lamalgue": {
+    "nb_annonces": 11,
+    "prix_m2_moyen": 4654,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier **Le Mourillon - La Mitre - Fort Lamalgue** à Toulon se distingue par des **appartements** aux prix élevés, avec un **prix moyen au m² de 4 654 €**, reflétant son attractivité résidentielle et sa proximité avec la mer. Les biens proposés, allant du studio au duplex, affichent des **écarts significatifs** (entre 3 698 € et 5 517 €/m²), confirmant un marché dynamique et segmenté. Ce secteur prisé, alliant cadre balnéaire et centralité, s’adresse à une clientèle recherchant un cadre de vie privilégié."
+  },
+  "Le Port": {
+    "nb_annonces": 4,
+    "prix_m2_moyen": 3668,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier **Le Port** à Toulon se distingue par une offre immobilière principalement composée d'appartements, avec un prix moyen au mètre carré de **3 668 €**, reflétant une forte disparité selon les biens (de 1 857 € à 5 625 €/m²). Ce secteur, dynamique et bien situé, attire des acquéreurs recherchant un cadre urbain proche des commodités, avec des prix variables selon l'état et l'emplacement précis des logements."
+  },
+  "Les Lices": {
+    "nb_annonces": 3,
+    "prix_m2_moyen": 2709,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. **Synthèse du quartier Les Lices à Toulon :**\nLes Lices se positionne comme un quartier résidentiel prisé, principalement composé d'appartements avec un prix moyen au mètre carré de **2 709 €**, bien que des variations existent (entre **2 351 € et 3 425 €** selon les biens). Les annonces disponibles, majoritairement des 3 et 4 pièces, reflètent une demande soutenue pour des logements spacieux et bien situés, renforçant l'attractivité de ce secteur."
+  },
+  "Les Quatre Chemins": {
+    "nb_annonces": 2,
+    "prix_m2_moyen": 3560,
+    "types": [
+      "appartement",
+      "maison"
+    ],
+    "synthese": "C'est le bien de vos rêves. **Synthèse du quartier Les Quatre Chemins à Toulon :**\nLes Quatre Chemins se caractérise par une offre immobilière limitée (2 annonces) mais diversifiée, avec des appartements et des maisons affichant un prix moyen au m² de **3 560 €**, légèrement inférieur à la moyenne toulonnaise pour les maisons (3 846 €/m²). Ce quartier, dynamique et bien desservi, offre un positionnement attractif pour les acquéreurs recherchant un cadre résidentiel à prix maîtrisé."
+  },
+  "Les Routes": {
+    "nb_annonces": 4,
+    "prix_m2_moyen": 3714,
+    "types": [
+      "appartement",
+      "maison"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier **Les Routes** à Toulon se caractérise par une offre immobilière variée, incluant des appartements et des maisons, avec un **prix moyen au m² de 3 714 €**, reflétant une certaine diversité de tarifs selon les biens (de 2 706 €/m² pour un appartement à 4 526 €/m² pour une maison). Situé en périphérie, ce quartier offre un cadre résidentiel plus calme, tout en restant accessible aux commodités urbaines, avec des prix globalement inférieurs à ceux des secteurs plus centraux."
+  },
+  "Place d'Armes": {
+    "nb_annonces": 3,
+    "prix_m2_moyen": 2985,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier **Place d'Armes** à Toulon se distingue par son offre immobilière principalement composée d'appartements, avec un prix moyen au mètre carré de **2 985 €**, reflétant un positionnement attractif pour les acquéreurs recherchant un cadre central et dynamique. Les biens proposés, allant de 2 à 4 pièces, affichent des prix variables selon leur état et leur localisation précise, avec des écarts notables entre les annonces (de 2 708 € à 3 417 €/m²). Ce secteur, bien desservi et proche des commodités, s'adresse à une clientèle en quête de praticité et de qualité de vie en centre-ville."
+  },
+  "Pont de Bois": {
+    "nb_annonces": 6,
+    "prix_m2_moyen": 3429,
+    "types": [
+      "appartement",
+      "maison"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier Pont de Bois à Toulon se distingue par une offre variée, avec des appartements et des maisons affichant un prix moyen au mètre carré de **3 429 €**, bien que les maisons atteignent des valeurs plus élevées (jusqu’à 4 333 €/m²). Ce secteur, en développement, attire les acquéreurs recherchant un cadre résidentiel calme tout en bénéficiant d’un positionnement accessible, à proximité des axes majeurs de la ville. Les prix reflètent une demande soutenue pour des biens spacieux, notamment les maisons familiales."
+  },
+  "Pont de Suve": {
+    "nb_annonces": 2,
+    "prix_m2_moyen": 3183,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier **Pont de Suve** à Toulon se caractérise par une offre immobilière limitée, principalement composée d'appartements, avec un prix moyen au mètre carré de **3 183 €**. Les biens disponibles, comme un 4 pièces à 3 333 €/m² ou un 3 pièces à 3 033 €/m², reflètent un positionnement résidentiel attractif, bien que moins dense en transactions que d'autres secteurs de la ville. Ce quartier offre un cadre de vie calme, à proximité des commodités, avec des prix légèrement supérieurs à la moyenne toulonnaise."
+  },
+  "Pont du Las": {
+    "nb_annonces": 17,
+    "prix_m2_moyen": 2669,
+    "types": [
+      "appartement",
+      "maison"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier **Pont du Las** à Toulon se caractérise par une offre variée de biens immobiliers, principalement des **appartements** (2 à 3 pièces) et quelques **maisons**, avec un **prix moyen au m² de 2669 €**, reflétant une fourchette large selon les caractéristiques des biens (de 1932 € à 3317 €/m²). Situé en périphérie, ce quartier offre un positionnement plus accessible que les secteurs centraux, tout en bénéficiant d’un cadre résidentiel et d’un bon accès aux infrastructures."
+  },
+  "Porte d'Italie": {
+    "nb_annonces": 7,
+    "prix_m2_moyen": 3659,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier **Porte d'Italie** à Toulon se caractérise par une offre immobilière principalement composée d'appartements, avec un prix moyen au mètre carré de **3 659 €**, bien que des écarts significatifs existent selon les biens (de 2 195 € à 5 392 €/m²). Ce secteur, en périphérie de la ville, offre des opportunités d'achat variées, avec des prix globalement plus accessibles que le centre-ville, tout en restant attractif pour les investisseurs et les primo-accédants. Son positionnement en fait un quartier résidentiel dynamique, bénéficiant d'une bonne accessibilité et d'un cadre de vie équilibré."
+  },
+  "Proche de la Serinette et du quartier d'Aguillon": {
+    "nb_annonces": 1,
+    "prix_m2_moyen": 3169,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier proche de la Serinette et d'Aguillon à Toulon se caractérise par une offre immobilière rare, avec des appartements affichant un prix moyen de **3 169 €/m²**, comme illustré par un bien de 77 m² vendu à 244 000 €. Ce secteur, résidentiel et bien situé, attire les acquéreurs recherchant un cadre calme tout en restant proche des commodités du centre-ville. Son positionnement en fait un quartier prisé pour les familles et les investisseurs."
+  },
+  "Rodeilhac": {
+    "nb_annonces": 3,
+    "prix_m2_moyen": 3542,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. **Synthèse du quartier Rodeilhac à Toulon :**\nLe quartier Rodeilhac se caractérise par une offre limitée d'appartements (3 annonces disponibles), avec un prix moyen au mètre carré de **3 542 €**, bien que les écarts soient notables (de 2 109 € à 4 259 €/m²). Positionné comme un secteur résidentiel, il attire des acquéreurs recherchant des biens de type 3 pièces, avec des opportunités à des prix variables selon l'état et l'emplacement précis."
+  },
+  "Saint-Jean du Var": {
+    "nb_annonces": 14,
+    "prix_m2_moyen": 2803,
+    "types": [
+      "appartement",
+      "maison"
+    ],
+    "synthese": "C'est le bien de vos rêves. **Synthèse du quartier Saint-Jean du Var à Toulon :**\n\nSaint-Jean du Var se positionne comme un quartier dynamique, offrant une mixité de biens (appartements et maisons) avec un prix moyen au m² de **2 803 €**, variant selon l'ancienneté et la localisation. Les annonces récentes montrent des écarts significatifs, notamment pour les logements neufs (jusqu'à **3 493 €/m²**), tandis que les biens anciens affichent des prix plus accessibles. Ce quartier, en pleine mutation, attire autant les investisseurs que les primo-accédants grâce à son équilibre entre prix et potentiel de valorisation."
+  },
+  "Saint-Roch": {
+    "nb_annonces": 24,
+    "prix_m2_moyen": 2617,
+    "types": [
+      "appartement",
+      "maison"
+    ],
+    "synthese": "C'est le bien de vos rêves. **Synthèse du quartier Saint-Roch à Toulon :**\nSaint-Roch se positionne comme un quartier résidentiel attractif, avec un prix moyen au mètre carré de **2 617 €**, reflétant une offre variée d’appartements (majoritairement) et de maisons. Les prix varient selon la surface et l’agencement, oscillant entre **2 100 € et 3 000 €/m²**, ce qui en fait un secteur dynamique, à mi-chemin entre accessibilité et valorisation immobilière. Proche des commodités et des axes de circulation, il séduit autant les investisseurs que les acquéreurs en recherche de stabilité."
+  },
+  "Sainte-Anne": {
+    "nb_annonces": 5,
+    "prix_m2_moyen": 4327,
+    "types": [
+      "appartement",
+      "maison"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier Sainte-Anne à Toulon se caractérise par une offre immobilière variée, avec des prix au mètre carré oscillant entre **3 381 € et 6 127 €**, selon les biens (maisons ou appartements). Les transactions récentes révèlent une fourchette large, avec des appartements à partir de **3 381 €/m²** et des maisons plus rares mais à des tarifs élevés (ex. **5 341 €/m²**). Ce quartier, dynamique et bien situé, attire des acquéreurs recherchant des biens de standing, avec des écarts de prix liés à la qualité des logements et à leur emplacement précis."
+  },
+  "Siblas": {
+    "nb_annonces": 2,
+    "prix_m2_moyen": 4536,
+    "types": [
+      "appartement",
+      "maison"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier de Siblas à Toulon se caractérise par une offre immobilière limitée (2 annonces) mais diversifiée, avec des appartements et des maisons affichant un prix moyen au m² de **4 536 €**, en ligne avec les exemples observés (4 426 € à 4 645 €/m²). Positionné comme un secteur résidentiel calme, il attire des acquéreurs recherchant des biens spacieux, comme en témoigne l'appartement 4 pièces de 107 m² ou la maison 2 pièces de 61 m². Son attractivité reste à confirmer par un volume d'annonces plus conséquent."
+  },
+  "St Roch": {
+    "nb_annonces": 2,
+    "prix_m2_moyen": 3266,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. **Synthèse du quartier Saint-Roch à Toulon :**\nSaint-Roch se positionne comme un quartier résidentiel calme, principalement composé d'appartements, avec un prix moyen au mètre carré autour de **3 266 €/m²**. Les biens disponibles, comme les 4 pièces de 86 m² proposés entre **3 110 € et 3 421 €/m²**, reflètent une offre limitée mais attractive pour les acquéreurs recherchant un cadre paisible à proximité des commodités toulonnaises."
+  },
+  "Toulon": {
+    "nb_annonces": 1,
+    "prix_m2_moyen": 3073,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier de Toulon se caractérise par une offre immobilière limitée, avec un prix moyen au mètre carré de **3 073 €**, principalement composé d'appartements. L'exemple d'un **3 pièces de 55 m² à 169 000 €** illustre un marché accessible, bien que peu dynamique. Ce quartier, central et bien desservi, offre un positionnement attractif pour les investisseurs et les acquéreurs recherchant un cadre urbain."
+  },
+  "Toulon Ouest": {
+    "nb_annonces": 1,
+    "prix_m2_moyen": 2284,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. **Synthèse du quartier Toulon Ouest** :\nToulon Ouest se positionne comme un secteur résidentiel calme et bien desservi, principalement composé d'appartements, avec un prix moyen au mètre carré de **2 284 €/m²**. L'offre reste limitée, comme en témoigne l'annonce d'un **3 pièces de 70 m²** à **159 900 €**, reflétant un marché stable et attractif pour les acquéreurs recherchant un cadre de vie équilibré à proximité des commodités."
+  },
+  "Ubac - Dardennes - Barbasse - Mont Faron": {
+    "nb_annonces": 4,
+    "prix_m2_moyen": 3986,
+    "types": [
+      "appartement",
+      "maison"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier **Ubac - Dardennes - Barbasse - Mont Faron** à Toulon se distingue par une offre immobilière variée, composée principalement de **maisons et d'appartements**, avec un prix moyen au mètre carré de **3 986 €**. Les biens proposés, allant de 76 m² à 135 m², affichent des tarifs cohérents avec cette fourchette, reflétant un positionnement attractif pour les acquéreurs recherchant un cadre résidentiel ou une vue sur le Mont Faron. Ce secteur allie proximité urbaine et environnement naturel, en faisant un choix prisé pour les familles et investisseurs."
+  },
+  "Valbertrand": {
+    "nb_annonces": 8,
+    "prix_m2_moyen": 3116,
+    "types": [
+      "appartement"
+    ],
+    "synthese": "C'est le bien de vos rêves. **Synthèse du quartier Valbertrand à Toulon :**\n\nValbertrand se positionne comme un quartier résidentiel prisé, principalement composé d'appartements (3 à 4 pièces) avec un prix moyen au mètre carré de **3 116 €**, bien que des écarts significatifs soient observés selon les biens (de 2 468 € à 4 623 €/m²). Son attractivité repose sur des logements spacieux et bien situés, offrant un cadre de vie équilibré entre proximité urbaine et tranquillité."
+  },
+  "Valbourdin": {
+    "nb_annonces": 5,
+    "prix_m2_moyen": 3387,
+    "types": [
+      "appartement",
+      "maison"
+    ],
+    "synthese": "C'est le bien de vos rêves. Le quartier Valbourdin à Toulon se caractérise par une offre immobilière variée, avec des prix moyens au mètre carré oscillant autour de **3 387 €**, incluant des appartements (2 à 4 pièces) et des maisons (5 à 9 pièces), ces dernières affichant des prix plus élevés. Positionné comme un secteur résidentiel recherché, il allie accessibilité et attractivité, avec des biens allant de **2 678 €/m²** pour les grandes maisons à **3 480 €/m²** pour les petits appartements. Son marché reflète une demande soutenue, notamment pour les logements familiaux."
+  }
+}

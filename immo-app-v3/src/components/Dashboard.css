@@ -1,0 +1,193 @@
+/* ════ DASHBOARD LIGHT PREMIUM BENTO SYSTEM ════ */
+.dashboard {
+  margin-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ═══ BANNIÈRE PROFIL (Glass Pill) ═══ */
+.profil-banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 40px;
+  padding: 12px 24px;
+  font-size: 14px;
+  color: var(--text-muted);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+  margin-bottom: 8px;
+  align-self: flex-start;
+}
+.pb-item { color: var(--text-dark); }
+.pb-item strong { color: var(--neon-orange); font-weight: 700; }
+.pb-sep { color: #cbd5e1; }
+
+/* ═══ ONGLETS ═══ */
+.dash-tabs {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 1px;
+}
+
+.dash-tab {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 14px 0;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+.dash-tab:hover  { color: var(--text-main); }
+.dash-tab.active { 
+  color: var(--neon-orange); 
+  border-bottom-color: var(--neon-orange);
+}
+
+/* ═══ BENTO SPECIFICS ═══ */
+.kpi-row {
+  display: contents; /* Let Bento Grid handle layout completely */
+}
+
+/* Tooltip Recharts Glass */
+.custom-tooltip {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 13px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  color: var(--text-main);
+}
+.tooltip-label { font-weight: 700; color: var(--text-muted); margin-bottom: 6px; }
+
+/* ═══ TABLE QUARTIERS (Clean Data) ═══ */
+.table-card {
+  padding: 0;
+}
+.table-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 28px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.quartiers-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.quartiers-table thead th {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  padding: 16px 28px;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+}
+.quartiers-table tbody tr {
+  border-bottom: 1px solid #f8fafc;
+  transition: background 0.2s;
+}
+.quartiers-table tbody tr:hover { background: #f8fafc; }
+.quartiers-table tbody td { padding: 16px 28px; }
+
+.td-quartier { font-size: 14px; font-weight: 600; color: var(--text-main); }
+.td-mono     { font-family: 'DM Sans', monospace; font-size: 14px; color: var(--text-dark); }
+.td-bold     { font-weight: 700; color: #0f172a; }
+.td-muted    { color: var(--text-muted); }
+
+.delta-up   { color: var(--green); font-weight: 600; }
+.delta-down { color: var(--red); font-weight: 600; }
+
+/* ═══ CONSOLE ESTIMATEUR (Clean Form) ═══ */
+.predictor-tool {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.pred-field { display: flex; flex-direction: column; gap: 8px; }
+.pred-field label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.pred-field input,
+.pred-field select {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.pred-field input:focus,
+.pred-field select:focus { 
+  border-color: var(--neon-orange); 
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255,87,34,0.1);
+  outline: none;
+}
+
+.pred-btn {
+  background: var(--neon-orange);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+.pred-btn:hover { 
+  background: #e64a19;
+  transform: translateY(-2px); 
+  box-shadow: 0 6px 16px rgba(255,87,34,0.25); 
+}
+
+.pred-result {
+  margin-top: 16px;
+  padding: 28px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+.pred-result-label { color: #64748b; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+.pred-result-val { font-size: 42px; font-weight: 800; color: var(--neon-orange); line-height: 1; margin-bottom: 8px; }
+.pred-result-range { font-size: 14px; color: #475569; }
+
+/* Toggle Pills */
+.toggle-pills { display: flex; border-radius: 8px; overflow: hidden; background: #f1f5f9; border: 1px solid #e2e8f0; }
+.toggle-pill { padding: 10px 16px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; background: transparent; transition: all 0.2s; cursor: pointer; border: none;}
+.toggle-pill.active { background: #ffffff; color: #0f172a; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-radius: 6px; margin: 2px;}
+.toggle-pill:hover:not(.active) { color: #0f172a; }
+
+/* Top Annonces Hover */
+.top-annonce-item { background: #f8fafc; border: 1px solid #e2e8f0; transition: all 0.2s; }
+.top-annonce-item:hover { border-color: #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transform: translateY(-2px); }
+.top-annonce-prix { color: #0f172a; font-weight: 800; }
+
+.tx-search { background: #f8fafc; border: 1px solid #e2e8f0; color: #0f172a; padding: 10px 14px; border-radius: 8px; font-size: 14px; }
+.tx-search:focus { outline: none; border-color: var(--neon-orange); box-shadow: 0 0 0 3px rgba(255,87,34,0.1); }

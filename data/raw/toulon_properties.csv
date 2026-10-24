@@ -1,0 +1,51 @@
+id,district,property_type,surface_m2,rooms,price,has_garden,has_parking,floor,year_built,distance_to_center_km
+1,Le Mourillon,apartment,65,3,245000,0,1,3,1975,2.5
+2,Le Mourillon,apartment,82,4,310000,0,1,5,1988,2.3
+3,Le Mourillon,house,120,5,520000,1,1,0,1960,2.8
+4,Le Mourillon,apartment,45,2,185000,0,0,2,2005,2.6
+5,Le Mourillon,apartment,93,4,355000,0,1,1,2012,2.4
+6,Cap Brun,house,150,6,680000,1,1,0,1985,3.2
+7,Cap Brun,apartment,78,3,295000,0,1,4,1998,3.0
+8,Cap Brun,house,200,7,890000,1,1,0,1970,3.5
+9,Cap Brun,apartment,55,2,215000,0,0,2,2010,3.1
+10,Cap Brun,apartment,100,4,420000,0,1,6,2015,2.9
+11,Centre-Ville,apartment,40,2,155000,0,0,3,1965,0.2
+12,Centre-Ville,apartment,60,3,210000,0,0,5,1980,0.3
+13,Centre-Ville,apartment,35,1,128000,0,0,2,1970,0.1
+14,Centre-Ville,apartment,72,3,240000,0,1,4,1995,0.4
+15,Centre-Ville,apartment,50,2,175000,0,0,1,2000,0.5
+16,La Serinette,apartment,68,3,228000,0,1,2,2008,1.8
+17,La Serinette,house,110,4,395000,1,1,0,1992,2.0
+18,La Serinette,apartment,58,2,195000,0,0,3,2003,1.7
+19,La Serinette,apartment,85,4,305000,0,1,1,2016,1.9
+20,La Serinette,house,140,5,470000,1,1,0,1988,2.1
+21,Le Pont du Las,apartment,52,2,145000,0,0,2,1978,3.8
+22,Le Pont du Las,apartment,70,3,185000,0,1,4,1985,3.5
+23,Le Pont du Las,house,95,4,240000,1,1,0,1975,4.0
+24,Le Pont du Las,apartment,48,2,135000,0,0,1,1982,3.6
+25,Le Pont du Las,apartment,63,3,168000,0,0,3,1990,3.7
+26,Saint-Jean du Var,apartment,55,2,162000,0,0,2,1980,2.2
+27,Saint-Jean du Var,apartment,75,3,215000,0,1,3,1995,2.0
+28,Saint-Jean du Var,house,105,4,320000,1,1,0,1988,2.4
+29,Saint-Jean du Var,apartment,42,2,138000,0,0,1,1972,2.1
+30,Saint-Jean du Var,apartment,88,4,275000,0,1,5,2010,2.3
+31,Le Mourillon,apartment,70,3,260000,0,1,4,1982,2.5
+32,Le Mourillon,house,135,5,485000,1,1,0,1995,2.7
+33,Cap Brun,house,180,6,780000,1,1,0,1992,3.3
+34,Cap Brun,apartment,62,3,250000,0,0,3,2002,3.1
+35,Centre-Ville,apartment,55,2,190000,0,0,4,1985,0.3
+36,Centre-Ville,apartment,80,3,265000,0,1,6,2005,0.4
+37,La Serinette,apartment,90,4,325000,0,1,2,2018,1.8
+38,La Serinette,house,125,5,435000,1,1,0,1990,2.0
+39,Le Pont du Las,house,100,4,255000,1,1,0,1980,4.1
+40,Le Pont du Las,apartment,58,2,152000,0,0,2,1988,3.9
+41,Saint-Jean du Var,house,115,5,345000,1,1,0,1993,2.5
+42,Saint-Jean du Var,apartment,48,2,148000,0,0,1,1978,2.0
+43,Le Mourillon,apartment,58,2,220000,0,1,2,2000,2.4
+44,Cap Brun,apartment,72,3,288000,0,1,5,2008,3.0
+45,Centre-Ville,apartment,48,2,170000,0,0,3,1992,0.2
+46,La Serinette,apartment,62,3,215000,0,1,1,2005,1.9
+47,Le Pont du Las,apartment,45,2,125000,0,0,1,1975,3.8
+48,Saint-Jean du Var,apartment,65,3,198000,0,1,3,1998,2.2
+49,Cap Brun,house,165,5,720000,1,1,0,2000,3.4
+50,Le Mourillon,house,145,6,550000,1,1,0,2005,2.6
