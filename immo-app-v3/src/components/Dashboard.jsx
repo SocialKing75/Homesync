@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp, computeScore } from '../context/AppContext';
+import { API_BASE } from '../api';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar,
@@ -197,7 +198,7 @@ export default function Dashboard({ forcedTab }) {
   useEffect(() => {
     if (activeTab === 'opportunites' && !opportunitesData) {
       setOpportunitesLoading(true);
-      fetch('http://localhost:5001/api/knn_opportunities')
+      fetch(`${API_BASE}/api/knn_opportunities`)
         .then(res => res.json())
         .then(data => {
           setOpportunitesData(data);
@@ -213,7 +214,7 @@ export default function Dashboard({ forcedTab }) {
   useEffect(() => {
     if (activeTab === 'regression' && !regressionData) {
       setRegressionLoading(true);
-      fetch('http://localhost:5001/api/regression')
+      fetch(`${API_BASE}/api/regression`)
         .then(res => res.json())
         .then(data => {
           setRegressionData(data);

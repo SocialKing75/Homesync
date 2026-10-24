@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { api } from '../api';
 
 const AppContext = createContext();
 
@@ -115,19 +116,12 @@ export function AppProvider({ children }) {
   });
   const [annonces, setAnnonces] = useState([]);
 
-  // Fetch from Python Backend FastApi
+  // Fetch from Python Backend FastApi (with the session token: disliked properties are filtered out)
   useEffect(() => {
-    console.log('📡 Fetching properties from backend...');
-    fetch('http://localhost:5001/api/properties')
-      .then(res => {
-        console.log('📡 Response status:', res.status);
-        return res.json();
-      })
-      .then(data => {
-        console.log('✅ Loaded', data.length, 'annonces from backend');
-        setAnnonces(data);
-      })
-      .catch(err => console.error("❌ Could not load backend annonces:", err));
+    api('/api/properties').then(r => {
+      if (r.ok) setAnnonces(r.data);
+      else console.error('❌ Could not load backend annonces:', r.data);
+    });
   }, []);
   const [theme, setTheme] = useState('light');
   const [profil, setProfil] = useState(() => {

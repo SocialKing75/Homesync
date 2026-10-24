@@ -1,10 +1,11 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import Navbar from '../components/Navbar';
 import Dashboard from '../components/Dashboard';
+import CoupsDeCoeur from '../components/CoupsDeCoeur';
 import { useApp, computeScore } from '../context/AppContext';
 import './Accueil.css';
 
@@ -268,7 +269,8 @@ export default function Accueil() {
 
   console.log('🚀 Accueil component loaded. Annonces:', annonces?.length || 0, 'Profil:', profil);
 
-  const [tab, setTab] = useState('carte');
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState(searchParams.get('tab') || 'carte');
   const [selected, setSelected] = useState(null);
 
   const scored = useMemo(
@@ -340,7 +342,15 @@ export default function Accueil() {
         <button className={`tab-btn ${tab === 'analyses' ? 'active' : ''}`} onClick={() => setTab('analyses')}>Analyses</button>
         <button className={`tab-btn ${tab === 'opportunites' ? 'active' : ''}`} onClick={() => setTab('opportunites')}>Opportunités et k-NN</button>
         <button className={`tab-btn ${tab === 'carte' ? 'active' : ''}`} onClick={() => setTab('carte')}>Carte</button>
+        <button className={`tab-btn ${tab === 'favoris' ? 'active' : ''}`} onClick={() => setTab('favoris')}>❤ Coups de cœur</button>
       </div>
+
+      {/* ═══ COUPS DE CŒUR TAB ═══ */}
+      {tab === 'favoris' && (
+        <div className="analyse-wrapper">
+          <CoupsDeCoeur />
+        </div>
+      )}
 
       {/* ═══ CARTE TAB ═══ */}
       {tab === 'carte' && (

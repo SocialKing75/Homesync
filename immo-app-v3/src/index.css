@@ -20,6 +20,8 @@
   /* Accents */
   --neon-orange: #ff5722;
   --neon-orange-glow: rgba(255, 87, 34, 0.15);
+  --orange: var(--neon-orange);
+  --orange-dark: #e64a19;
   --neon-blue: #0ea5e9;
 
   --green: #10b981;

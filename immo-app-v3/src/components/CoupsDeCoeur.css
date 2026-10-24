@@ -1,0 +1,123 @@
+/* ── Coups de cœur, fiche annonce, dossier de candidature ── */
+
+.cdc { max-width: 1200px; margin: 0 auto; padding: 8px 20px 40px; font-family: 'DM Sans', sans-serif; }
+.cdc-info { text-align: center; color: var(--text-muted); padding: 40px; }
+
+.cdc-tete { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.cdc-filtres { display: flex; gap: 8px; flex-wrap: wrap; }
+.cdc-filtres button {
+  background: #fff; border: 1.5px solid #e2e8f0; border-radius: 999px;
+  padding: 8px 14px; font-size: 13px; font-weight: 600; color: var(--text-dark);
+}
+.cdc-filtres button.on { border-color: var(--orange); color: var(--orange-dark); background: rgba(255, 87, 34, 0.08); }
+
+.cdc-btn {
+  display: inline-block; background: var(--orange); color: #fff; border-radius: 12px;
+  padding: 12px 18px; font-size: 14px; font-weight: 700; text-decoration: none;
+}
+.cdc-btn:hover:not(:disabled) { background: var(--orange-dark); }
+.cdc-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.cdc-btn.secondaire { background: #fff; color: var(--text-main); border: 1.5px solid #e2e8f0; }
+.cdc-btn.secondaire:hover { border-color: var(--orange); color: var(--orange-dark); background: #fff; }
+
+.cdc-vide { text-align: center; padding: 50px 20px; color: var(--text-muted); }
+.cdc-vide h2 { font-family: 'Outfit', sans-serif; color: var(--text-main); margin-bottom: 8px; }
+.cdc-vide p { margin-bottom: 18px; }
+
+.cdc-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; }
+.cdc-carte {
+  background: #fff; border: 1px solid var(--border-light); border-radius: 18px; overflow: hidden;
+  text-align: left; padding: 0; box-shadow: var(--shadow-bento);
+}
+.cdc-carte:hover { transform: translateY(-3px); box-shadow: 0 14px 34px rgba(15, 23, 42, 0.1); }
+.cdc-carte.gold { border-color: #f5b301; box-shadow: 0 0 0 3px rgba(245, 179, 1, 0.18); }
+.cdc-photo { position: relative; aspect-ratio: 4 / 3; background: linear-gradient(135deg, #fde2d6, #e0f2fe); display: grid; place-items: center; font-size: 40px; }
+.cdc-photo img { width: 100%; height: 100%; object-fit: cover; }
+.cdc-badge-gold, .cdc-badge-postule {
+  position: absolute; top: 10px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;
+}
+.cdc-badge-gold { left: 10px; background: #f5b301; color: #fff; }
+.cdc-badge-gold.inline { position: static; margin-left: 10px; vertical-align: middle; }
+.cdc-badge-postule { right: 10px; background: var(--green); color: #fff; }
+.cdc-carte-texte { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px 14px; }
+.cdc-carte-texte strong { font-family: 'Outfit', sans-serif; font-size: 18px; color: var(--text-main); }
+.cdc-carte-texte span { font-size: 13px; color: var(--text-dark); }
+.cdc-lieu { color: var(--text-muted) !important; }
+
+/* Modales */
+.cdc-modale {
+  position: fixed; inset: 0; z-index: 2000; background: rgba(15, 23, 42, 0.55); /* au-dessus de la navbar (1000) */
+  display: grid; place-items: center; padding: 16px;
+}
+.cdc-modale-contenu {
+  position: relative; width: 100%; max-width: 620px; max-height: calc(100vh - 32px); overflow-y: auto;
+  background: #fff; border-radius: 22px; padding: 26px; font-family: 'DM Sans', sans-serif;
+}
+.cdc-modale-contenu.fiche { padding: 0; max-width: 680px; }
+.cdc-modale-contenu h2 { font-family: 'Outfit', sans-serif; font-size: 20px; color: var(--text-main); margin-bottom: 12px; }
+.cdc-fermer {
+  position: absolute; top: 12px; right: 12px; z-index: 2; width: 34px; height: 34px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92); color: var(--text-dark); font-size: 15px;
+}
+
+.cdc-carrousel { position: relative; aspect-ratio: 16 / 10; background: #e2e8f0; display: grid; place-items: center; font-size: 56px; }
+.cdc-carrousel img { width: 100%; height: 100%; object-fit: cover; }
+.cdc-carrousel .prec, .cdc-carrousel .suiv {
+  position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9); font-size: 24px; color: var(--text-main);
+}
+.cdc-carrousel .prec { left: 12px; }
+.cdc-carrousel .suiv { right: 12px; }
+.cdc-compteur { position: absolute; bottom: 10px; right: 12px; background: rgba(0, 0, 0, 0.55); color: #fff; font-size: 12px; padding: 3px 9px; border-radius: 999px; }
+
+.cdc-fiche-texte { padding: 20px 24px 26px; }
+.cdc-fiche-prix { font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 700; color: var(--orange); }
+.cdc-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.cdc-badges span { background: #f1f5f9; border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 600; color: var(--text-dark); }
+.cdc-description { font-size: 14px; line-height: 1.55; color: var(--text-dark); max-height: 180px; overflow-y: auto; margin-bottom: 10px; }
+.cdc-lien { font-size: 14px; font-weight: 700; color: var(--orange-dark); }
+.cdc-fiche-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; }
+.cdc-postule { color: var(--green); font-weight: 700; font-size: 14px; }
+.cdc-lien-btn { background: none; color: var(--text-muted); text-decoration: underline; font-size: 13px; }
+.cdc-message { margin-top: 12px; font-size: 14px; color: #b45309; font-weight: 600; }
+
+/* Dossier */
+.dossier { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }
+.dossier-info { color: var(--text-muted); }
+.dossier-profil { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; color: var(--text-dark); }
+.dossier-choix { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 8px 14px; font-weight: 600; font-size: 14px; color: var(--text-dark); }
+.dossier-choix.on { border-color: var(--orange); background: rgba(255, 87, 34, 0.08); color: var(--orange-dark); }
+.dossier-progression { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-muted); }
+.dossier-barre { flex: 1; height: 8px; background: #f1f5f9; border-radius: 999px; overflow: hidden; }
+.dossier-barre span { display: block; height: 100%; background: var(--green); transition: width 0.3s; }
+.dossier-pieces { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.dossier-pieces li { border: 1px solid var(--border-light); border-radius: 12px; padding: 10px 12px; }
+.dossier-pieces li.complete { border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.04); }
+.dossier-piece-tete { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dossier-coche {
+  width: 22px; height: 22px; border-radius: 50%; border: 2px solid #cbd5e1; display: grid; place-items: center;
+  font-size: 13px; font-weight: 800; color: #fff; flex-shrink: 0;
+}
+li.complete .dossier-coche { background: var(--green); border-color: var(--green); }
+.dossier-piece-label { flex: 1; font-size: 14px; font-weight: 600; color: var(--text-main); min-width: 160px; }
+.dossier-piece-label em { font-weight: 400; color: var(--text-muted); font-style: normal; }
+.dossier-piece-tete input[type='date'] { border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 6px 8px; font-size: 13px; }
+.dossier-deposer { background: var(--text-main); color: #fff; border-radius: 9px; padding: 7px 13px; font-size: 13px; font-weight: 700; cursor: pointer; }
+.dossier-deposer:hover { background: #334155; }
+.dossier-fichier { display: flex; align-items: center; gap: 10px; margin: 8px 0 0 32px; font-size: 13px; color: var(--text-muted); }
+.dossier-lien { background: none; color: var(--text-dark); font-size: 13px; text-align: left; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dossier-lien:hover { color: var(--orange-dark); }
+.dossier-suppr { background: none; color: #94a3b8; font-size: 13px; }
+.dossier-suppr:hover { color: var(--red); }
+.dossier-erreur { font-size: 13px; color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 8px 12px; }
+.dossier-export { background: #fff; border: 1.5px solid var(--green); color: #047857; border-radius: 12px; padding: 11px 16px; font-weight: 700; font-size: 14px; }
+.dossier-export:hover { background: rgba(16, 185, 129, 0.06); }
+.dossier-rgpd { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+@media (max-width: 640px) {
+  .cdc-grille { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cdc-carte-texte strong { font-size: 15px; }
+  .cdc-modale { padding: 0; place-items: end center; }
+  .cdc-modale-contenu { border-radius: 22px 22px 0 0; max-height: 92vh; padding: 20px 16px; }
+  .cdc-fiche-texte { padding: 16px; }
+}

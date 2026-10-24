@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import ChatAgent from '../components/ChatAgent';
 import './Login.css';
 
 export default function Login() {
@@ -108,8 +109,10 @@ export default function Login() {
       </div>
 
       <div className="landing-main">
+        <ChatAgent />
+
         <div className="landing-search-card">
-          <h2 className="card-title">Affinez vos critères de recherche</h2>
+          <h2 className="card-title">Ou affinez vos critères manuellement</h2>
           
           {(typeBien === 'appartement' || typeBien === 'les-deux') && (
             <div className="form-group">

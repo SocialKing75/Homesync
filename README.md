@@ -27,8 +27,7 @@ Consultez l'onglet **Actions** > dernier workflow > **Job Summary** pour voir vo
 │   └── annonces.csv      <- Annonces reelles collectees
 ├── tests/
 │   ├── test_stats.py     <- Vos tests unitaires pour stats.py
-│   ├── test_regression.py <- Vos tests unitaires pour regression.py
-│   └── test_auto_eval.py <- Tests d'evaluation (NE PAS MODIFIER)
+│   └── test_regression.py <- Vos tests unitaires pour regression.py
 ├── requirements.txt
 └── README.md             <- Ce fichier (ajoutez l'URL de deploiement !)
 ```

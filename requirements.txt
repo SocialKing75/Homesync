@@ -2,3 +2,11 @@ streamlit>=1.30.0
 pytest>=7.0.0
 fastapi>=0.110.0
 uvicorn>=0.29.0
+httpx
+fpdf2
+chromadb
+sentence-transformers
+apscheduler
+requests
+python-dotenv
+cryptography

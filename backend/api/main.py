@@ -6,10 +6,15 @@
 # properties, market stats, and scores from the Python backend.
 # =============================================================================
 
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict, Optional
 from pydantic import BaseModel
+from apscheduler.schedulers.background import BackgroundScheduler
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Photos immobilières valides depuis Unsplash
 IMMO_PHOTOS = [
@@ -32,7 +37,25 @@ def get_photo(property_id: int) -> str:
 from backend.services.property_service import PropertyService
 from backend.models.data_models import Property
 
-app = FastAPI(title="ToulonFindAI API")
+from backend.automation.ingestion import sync
+
+# Ingestion automatique des annonces chaque jour à 7h00
+scheduler = BackgroundScheduler()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    scheduler.add_job(sync, "cron", hour=7, minute=0)
+    scheduler.start()
+    # Préchauffe le modèle d'embeddings et l'index : le 1er message du chat ne patiente pas ~10 s
+    import threading
+    from backend.rag.assistant import indexer_si_vide
+    threading.Thread(target=indexer_si_vide, daemon=True).start()
+    yield
+    scheduler.shutdown()
+
+
+app = FastAPI(title="ToulonFindAI API", lifespan=lifespan)
 
 # Allow CORS for the Vite frontend (which usually runs on localhost:5173)
 app.add_middleware(
@@ -42,6 +65,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Comptes utilisateurs (/api/auth) et favoris (/api/likes)
+from fastapi import Depends
+from backend.auth.routes import router as auth_router, get_optional_user
+from backend.auth.likes import router as likes_router, dislikes_router, disliked_ids
+from backend.chat.routes import router as chat_router
+from backend.dossier.routes import router as dossier_router, candidatures_router
+
+app.include_router(auth_router)
+app.include_router(likes_router)
+app.include_router(dislikes_router)
+app.include_router(chat_router)
+app.include_router(dossier_router)
+app.include_router(candidatures_router)
 
 # Singleton service instance
 service = PropertyService()
@@ -69,9 +106,10 @@ class PropertyFeaturesIn(BaseModel):
 # --- Endpoints ---
 
 @app.get("/api/properties")
-def get_properties() -> List[Dict]:
-    """Retrieve all properties from the dataset."""
-    props = service.load_properties()
+def get_properties(user=Depends(get_optional_user)) -> List[Dict]:
+    """Retrieve all properties from the dataset (minus the connected user's dislikes)."""
+    masquees = disliked_ids(user["id"]) if user else set()
+    props = [p for p in service.load_properties() if str(p.id) not in masquees]
     # Convert dataclasses to dicts manually (or use asdict) for JSON response
     # We rename some fields slightly to match the frontend expectations where possible.
     results = []
@@ -345,4 +383,93 @@ def get_regression_data() -> Dict:
         "beta": round(model.slope, 2),
         "rmse": round(rmse, 2),
         "residuals": residuals
+    }
+
+
+# --- RAG : recherche sémantique + assistant ---
+
+import hmac
+import os
+from fastapi import Header, HTTPException
+from pydantic import Field
+from backend.auth import crypto
+from backend.auth.routes import get_current_user
+from backend.rag.assistant import assistant_immobilier, indexer_si_vide
+from backend.rag.vector_store import get_collection, index_annonces, reset_collection, search_similar
+from backend.loaders.annonces_loader import charger_annonces_csv
+from backend.automation.alerts import sauvegarder_profil
+from backend.automation.ingestion import LAST_RUN_FILE
+
+
+class RagQueryIn(BaseModel):
+    question: str = Field(max_length=1000)
+    n: int = Field(5, ge=1, le=50)
+
+
+class AlerteProfilIn(BaseModel):
+    budget_max: Optional[float] = None
+    surface_min: Optional[float] = None
+    quartiers: List[str] = []
+
+
+@app.post("/api/rag/search")
+def rag_search(query: RagQueryIn, user=Depends(get_optional_user)) -> List[Dict]:
+    """Recherche sémantique ChromaDB : les n annonces les plus proches (hors dislikes si connecté)."""
+    indexer_si_vide()
+    masquees = disliked_ids(user["id"]) if user else set()
+    biens = search_similar(query.question, n=query.n + len(masquees))
+    return [b for b in biens if b.get("id_source") not in masquees][:query.n]
+
+
+@app.post("/api/rag/assistant")
+def rag_assistant(query: RagQueryIn) -> Dict:
+    """Question en langage naturel → annonces retrouvées + analyse du LLM local."""
+    return assistant_immobilier(query.question, n_results=query.n)
+
+
+@app.post("/api/alertes")
+def create_alerte(alerte: AlerteProfilIn, user=Depends(get_current_user)) -> Dict:
+    """Profil d'alerte du compte connecté : notifié à son adresse vérifiée (jamais une adresse saisie)."""
+    if not user["email_verified"]:
+        raise HTTPException(403, "Adresse email non vérifiée.")
+    email = crypto.decrypt(user["email_enc"])
+    sauvegarder_profil(email, alerte.dict())
+    return {"status": "alerte enregistrée", "email": email}
+
+
+# --- Automatisation : ingestion & index (réservé à l'admin : en-tête X-Admin-Token) ---
+
+def verifier_admin(x_admin_token: Optional[str] = Header(None)) -> None:
+    """ADMIN_TOKEN absent du .env : routes admin désactivées."""
+    attendu = os.getenv("ADMIN_TOKEN")
+    if not attendu or not x_admin_token or not hmac.compare_digest(x_admin_token, attendu):
+        raise HTTPException(403, "Accès administrateur requis.")
+
+
+@app.post("/api/admin/sync", dependencies=[Depends(verifier_admin)])
+def admin_sync(background_tasks: BackgroundTasks, dry_run: bool = False) -> Dict:
+    """Lance l'ingestion (scraping → CSV → ChromaDB → alertes) en arrière-plan."""
+    background_tasks.add_task(sync, dry_run=dry_run)
+    return {"status": "sync lancée en arrière-plan", "dry_run": dry_run}
+
+
+@app.post("/api/admin/reindex", dependencies=[Depends(verifier_admin)])
+def admin_reindex() -> Dict:
+    """Reconstruit l'index ChromaDB depuis data/annonces_bienici.csv (les annonces retirées en sortent)."""
+    reset_collection()
+    index_annonces(charger_annonces_csv())
+    return {"annonces_indexees": get_collection().count()}
+
+
+@app.get("/api/admin/status", dependencies=[Depends(verifier_admin)])
+def admin_status() -> Dict:
+    try:
+        n = get_collection().count()
+    except Exception:
+        n = 0
+    job = scheduler.get_jobs()[0] if scheduler.running and scheduler.get_jobs() else None
+    return {
+        "annonces_indexees": n,
+        "derniere_sync": LAST_RUN_FILE.read_text(encoding="utf-8") if LAST_RUN_FILE.exists() else "jamais",
+        "prochaine_sync": str(job.next_run_time) if job else None,
     }

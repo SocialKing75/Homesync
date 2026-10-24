@@ -28,7 +28,12 @@ notebook_execution.log
 .env
 .env.local
 
-# Assistant IA (local uniquement)
-CLAUDE.md
-CLAUDE.local.md
-.claude/
+# RAG / automatisation (régénérables, données personnelles)
+data/chroma/
+data/alertes.json
+data/.last_sync
+
+# Comptes utilisateurs (base + clé de chiffrement locale + pièces de dossier chiffrées)
+data/app.db
+data/.secret_key
+data/dossiers/
