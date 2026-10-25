@@ -41,6 +41,28 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
+.tab-btn.tab-tinder.active {
+  background: linear-gradient(135deg, #ff5722 0%, #ff8a65 100%);
+  color: white;
+  box-shadow: 0 4px 14px rgba(255, 87, 34, 0.4);
+}
+
+/* ── Tinder Tab Wrapper ── */
+.tinder-tab-wrapper {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  background: #f8fafc;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 50px;
+}
+
 /* ── Full-bleed map ── */
 .carte-fullscreen {
   position: fixed;

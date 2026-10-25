@@ -1,26 +1,41 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
-import Login from './pages/Login';
+import ChatMap from './pages/Login';
+import Onboarding from './pages/Onboarding';
+import Messages from './pages/Messages';
+import Matching from './pages/Matching';
+import PropertyDetails from './pages/PropertyDetails';
 import Accueil from './pages/Accueil';
-import AnnoncePage from './pages/AnnoncePage';
 import VerifierEmail from './pages/VerifierEmail';
 import Decouvrir from './pages/Decouvrir';
 import { getToken } from './api';
 
-// Dashboard : profil de recherche rempli OU compte connecté (session conservée au rechargement)
+import Favoris from './pages/Favoris';
+import Profil from './pages/Profil';
 function PrivateRoute({ children }) {
   const { user } = useApp();
   return user || getToken() ? children : <Navigate to="/" replace />;
 }
 
+function LegacyPropertyRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/bien/${encodeURIComponent(id)}`} replace />;
+}
+
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Login />} />
+      <Route path="/" element={<Onboarding />} />
+      <Route path="/recherche" element={<ChatMap />} />
       <Route path="/verifier-email" element={<VerifierEmail />} />
       <Route path="/decouvrir/:searchId" element={<Decouvrir />} />
-      <Route path="/accueil" element={<PrivateRoute><Accueil /></PrivateRoute>} />
-      <Route path="/annonce/:id" element={<PrivateRoute><AnnoncePage /></PrivateRoute>} />
+      <Route path="/accueil" element={<Navigate to="/recherche" replace />} />
+      <Route path="/matching" element={<PrivateRoute><Matching /></PrivateRoute>} />
+      <Route path="/messages" element={<PrivateRoute><Messages /></PrivateRoute>} />
+      <Route path="/bien/:id" element={<PrivateRoute><PropertyDetails /></PrivateRoute>} />
+      <Route path="/annonce/:id" element={<PrivateRoute><LegacyPropertyRedirect /></PrivateRoute>} />
+      <Route path="/favoris" element={<PrivateRoute><Favoris /></PrivateRoute>} />
+      <Route path="/profil" element={<PrivateRoute><Profil /></PrivateRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

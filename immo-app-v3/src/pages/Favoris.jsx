@@ -18,7 +18,7 @@ export default function Favoris() {
 
   const handleCopyLien = (e, annonce) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(`${window.location.origin}/annonce/${annonce.id}`).then(() => {
+    navigator.clipboard.writeText(`${window.location.origin}/bien/${encodeURIComponent(annonce.id)}`).then(() => {
       setCopiedId(annonce.id);
       setTimeout(() => setCopiedId(null), 2000);
     });
@@ -27,8 +27,8 @@ export default function Favoris() {
   const s = search.toLowerCase();
   const favorisFiltered = s
     ? favoris.filter(a =>
-        a.type.toLowerCase().includes(s) ||
-        a.quartier.toLowerCase().includes(s) ||
+        (a.type || '').toLowerCase().includes(s) ||
+        (a.quartier || a.ville || '').toLowerCase().includes(s) ||
         String(a.prix).includes(s) ||
         (a.achatLocation && a.achatLocation.toLowerCase().includes(s))
       )
@@ -40,16 +40,16 @@ export default function Favoris() {
       <div className="favoris-content">
 
         <div className="favoris-header-row">
-          <h2 className="favoris-title">❤️ Mes Favoris</h2>
-          <span className="favoris-count">{favoris.length} annonce{favoris.length !== 1 ? 's' : ''}</span>
+          <div><span className="page-kicker">Sélection de projet</span><h1 className="favoris-title">Biens conservés</h1><p>Comparez les opportunités retenues et préparez vos prises de contact.</p></div>
+          <span className="favoris-count">{favoris.length} bien{favoris.length !== 1 ? 's' : ''}</span>
         </div>
 
         <div className="favoris-search-wrap">
-          <span className="favoris-search-icon">🔍</span>
+          <span className="favoris-search-icon">Rechercher</span>
           <input
             type="text"
             className="favoris-search"
-            placeholder="Rechercher par type, quartier, prix..."
+            placeholder="Ville, type de bien ou budget…"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -60,13 +60,13 @@ export default function Favoris() {
 
         {favoris.length === 0 ? (
           <div className="favoris-empty">
-            <div className="empty-icon">❤️</div>
+            <div className="empty-icon">0</div>
             <p className="empty-title">Aucun favori pour l'instant</p>
-            <p className="empty-sub">Cliquez sur ♥ dans les annonces pour les sauvegarder ici</p>
+            <p className="empty-sub">Conservez un bien depuis vos correspondances pour le retrouver ici.</p>
           </div>
         ) : favorisFiltered.length === 0 ? (
           <div className="favoris-empty">
-            <div className="empty-icon">🔍</div>
+            <div className="empty-icon">—</div>
             <p className="empty-title">Aucun résultat pour « {search} »</p>
             <p className="empty-sub">Essayez un autre terme de recherche</p>
           </div>
@@ -79,11 +79,11 @@ export default function Favoris() {
                 <div
                   key={annonce.id}
                   className={`favori-card border-${color}`}
-                  onClick={() => navigate(`/annonce/${annonce.id}`)}
+                  onClick={() => navigate(`/bien/${encodeURIComponent(annonce.id)}`)}
                   style={{ cursor: 'pointer' }}
                 >
                   <div className="favori-img-wrap">
-                    <img src={annonce.img} alt="annonce" className="favori-img" />
+                    <img src={annonce.img || annonce.photos?.[0]} alt={annonce.titre || annonce.type || 'Bien immobilier'} className="favori-img" />
                     <button
                       className="favori-heart active"
                       onClick={e => { e.stopPropagation(); toggleFavori(annonce); }}
@@ -91,19 +91,19 @@ export default function Favoris() {
                     >
                       ♥
                     </button>
-                    <div className={`favori-score-badge score-${color}`}>{score}</div>
+                    <div className={`favori-score-badge score-${color}`}>{score}% compatibilité</div>
                   </div>
 
                   <div className="favori-body">
                     <div className="favori-info">
-                      <p className="favori-prix">{annonce.prix.toLocaleString('fr-FR')} €</p>
+                      <p className="favori-prix">{annonce.prix?.toLocaleString('fr-FR')} €</p>
                       <p className="favori-detail-row">
-                        <span className="favori-chip">{annonce.prixM2.toLocaleString('fr-FR')} €/m²</span>
+                        {annonce.prixM2 && <span className="favori-chip">{annonce.prixM2.toLocaleString('fr-FR')} €/m²</span>}
                         <span className="favori-chip">{annonce.surface} m²</span>
                       </p>
                       <p className="favori-type">{annonce.type}</p>
-                      <p className="favori-meta">📍 {annonce.quartier}</p>
-                      <p className="favori-meta">🛏 {annonce.pieces} pièces · {annonce.etage}</p>
+                      <p className="favori-meta">{annonce.ville || annonce.quartier}{annonce.quartier && annonce.ville ? ` · ${annonce.quartier}` : ''}</p>
+                      <p className="favori-meta">{annonce.pieces || annonce.nb_pieces} pièces{annonce.etage ? ` · ${annonce.etage}` : ''}</p>
                     </div>
                   </div>
 
@@ -111,7 +111,7 @@ export default function Favoris() {
                     className={`copy-btn ${copiedId === annonce.id ? 'copied' : ''}`}
                     onClick={e => handleCopyLien(e, annonce)}
                   >
-                    {copiedId === annonce.id ? '✓ Lien copié !' : '🔗 Copier le lien'}
+                    {copiedId === annonce.id ? 'Lien copié' : 'Copier le lien'}
                   </button>
                 </div>
               );

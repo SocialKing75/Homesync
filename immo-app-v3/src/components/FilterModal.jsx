@@ -7,6 +7,11 @@ export default function FilterModal({ isOpen, onClose }) {
 
   // Local state to avoid committing changes until the user clicks "Appliquer"
   const [localProfil, setLocalProfil] = useState(profil);
+  const [qSearch, setQSearch] = useState('');
+
+  const filteredQuartiers = qSearch
+    ? QUARTIERS_LIST.filter(q => q.toLowerCase().includes(qSearch.toLowerCase()))
+    : QUARTIERS_LIST;
 
   if (!isOpen) return null;
 
@@ -86,9 +91,37 @@ export default function FilterModal({ isOpen, onClose }) {
           </div>
 
           <div className="form-group">
-            <label>Quartiers de prédilection</label>
-            <div className="quartiers-tags">
-              {QUARTIERS_LIST.map(q => (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <label style={{ margin: 0 }}>Quartiers de prédilection ({(localProfil.quartiers || []).length} / 43)</label>
+              {(localProfil.quartiers || []).length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setLocalProfil(prev => ({ ...prev, quartiers: [] }))}
+                  style={{ background: 'none', border: 'none', color: 'var(--neon-orange)', fontSize: '12px', cursor: 'pointer', padding: 0, fontWeight: 600 }}
+                >
+                  Tout effacer
+                </button>
+              )}
+            </div>
+            <input
+              type="text"
+              placeholder="🔍 Filtrer parmi les 43 quartiers de Toulon..."
+              value={qSearch}
+              onChange={(e) => setQSearch(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                marginBottom: '10px',
+                borderRadius: '8px',
+                border: '1px solid var(--border-color, #e2e8f0)',
+                background: 'var(--bg-body, #ffffff)',
+                color: 'var(--text-color, #0f172a)',
+                fontSize: '13px',
+                outline: 'none',
+              }}
+            />
+            <div className="quartiers-tags" style={{ maxHeight: '180px', overflowY: 'auto', padding: '4px' }}>
+              {filteredQuartiers.map(q => (
                 <span 
                   key={q} 
                   className={`quartier-tag ${(localProfil.quartiers || []).includes(q) ? 'active' : ''}`}

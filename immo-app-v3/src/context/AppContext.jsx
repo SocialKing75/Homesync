@@ -1,21 +1,27 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { api } from '../api';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import {
+  fetchProperties,
+  scoreProperties,
+  fetchMarketDashboard,
+  fetchStats,
+  fetchKnnOpportunities,
+  searchNationalProperties,
+} from '../services/api';
 
 const AppContext = createContext();
 
-// Aligné avec les quartiers suivis dans le Dashboard (graphiques + kNN)
-const QUARTIERS_TOULON = [
-  'Mourillon', 'Centre-Ville', 'Saint-Jean du Var', 'La Rode',
-  'Pont du Las', 'Le Pradet', 'La Seyne', 'Siblas',
-  'Saint-Roch', 'Beaulieu', 'Aguillon', 'Corniche du Faron',
-  'Barbès', 'Bon Rencontre', 'Brunet', 'Champs-de-Mars',
-  'Claret', 'Darboussèdes', 'Font Pré', 'Haute-ville',
-  'La Loubière', 'La Palasse', 'Le Mourillon - La Mitre - Fort Lamalgue',
-  'Le Port', 'Les Lices', 'Porte d\'Italie', 'Valbourdin',
+// Suggestions nationales pour initier une recherche. Le chat accepte toute ville française.
+export const LOCALISATIONS_FRANCE = [
+  'Paris', 'Lyon', 'Marseille', 'Bordeaux', 'Toulouse', 'Nantes', 'Lille',
+  'Nice', 'Montpellier', 'Rennes', 'Strasbourg', 'Toulon', 'Aix-en-Provence',
+  'La Rochelle', 'Annecy', 'Biarritz', 'Grenoble', 'Angers', 'Dijon', 'Tours',
 ];
+export const QUARTIERS_TOULON = LOCALISATIONS_FRANCE;
+export const QUARTIERS_LIST = LOCALISATIONS_FRANCE;
 
-// Score basé sur les critères réels du profil (100 pts max)
+// Score basé sur les critères réels du profil (100 pts max) avec explication détaillée
 export function computeScoreDetailed(annonce, profil) {
+  // Si le backend a calculé un score combiné (relevance + market attractiveness), on peut l'intégrer
   const criteria = [];
 
   // Prix max (35 pts)
@@ -37,31 +43,31 @@ export function computeScoreDetailed(annonce, profil) {
   let ptsQ = 0;
   let quartierDetail = '';
   if (!profil.quartiers?.length) {
-    ptsQ = 25; quartierDetail = 'Tout Toulon accepté';
+    ptsQ = 25; quartierDetail = 'Toute la France acceptée';
   } else {
     const qOk = profil.quartiers.some(q =>
-      annonce.quartier.toLowerCase().includes(q.toLowerCase()) ||
-      q.toLowerCase().includes(annonce.quartier.toLowerCase())
+      (annonce.quartier || annonce.ville || '').toLowerCase().includes(q.toLowerCase()) ||
+      q.toLowerCase().includes((annonce.quartier || annonce.ville || '').toLowerCase())
     );
     ptsQ = qOk ? 25 : 0;
-    quartierDetail = qOk ? `${annonce.quartier} — dans votre sélection` : `${annonce.quartier} — hors sélection`;
+    quartierDetail = qOk ? `${annonce.quartier || annonce.ville} — dans votre sélection` : `${annonce.quartier || annonce.ville} — hors sélection`;
   }
   criteria.push({ label: 'Quartier', pts: ptsQ, max: 25, met: ptsQ === 25, partial: false, detail: quartierDetail });
 
   // Pièces (20 pts)
-  const diff = Math.abs(annonce.pieces - profil.pieces);
+  const diff = Math.abs((annonce.pieces || annonce.nb_pieces || 1) - profil.pieces);
   const ptsR = diff === 0 ? 20 : diff === 1 ? 12 : diff === 2 ? 5 : 0;
   criteria.push({
     label: 'Pièces',
     pts: ptsR, max: 20,
     met: diff === 0, partial: diff > 0 && ptsR > 0,
-    detail: `${annonce.pieces} pièce${annonce.pieces > 1 ? 's' : ''} — souhaité : ${profil.pieces}`,
+    detail: `${annonce.pieces || annonce.nb_pieces || 1} pièce${(annonce.pieces || annonce.nb_pieces || 1) > 1 ? 's' : ''} — souhaité : ${profil.pieces}`,
   });
 
   // Type de bien (15 pts)
   const typeOk = profil.typeBien === 'Appartement'
-    ? annonce.type.startsWith('Appartement')
-    : annonce.type.startsWith('Maison');
+    ? (annonce.type || '').toLowerCase().includes('appartement')
+    : (annonce.type || '').toLowerCase().includes('maison');
   criteria.push({
     label: 'Type de bien',
     pts: typeOk ? 15 : 0, max: 15,
@@ -83,20 +89,12 @@ export function computeScoreDetailed(annonce, profil) {
 }
 
 export function computeScore(annonce, profil) {
+  // If backend scored this annonce, respect the backend combined score if available
+  if (typeof annonce.backend_score === 'number') {
+    return Math.round(annonce.backend_score);
+  }
   return computeScoreDetailed(annonce, profil).total;
 }
-
-const DESCRIPTIONS_ANNONCE = [
-  'Beau bien lumineux avec vue dégagée. Cuisine ouverte entièrement équipée, parquet chêne, double vitrage. Très bon état général. Libre de suite.',
-  'Idéalement situé au cœur du quartier, à proximité immédiate des commerces et transports en commun. Copropriété bien entretenue, charges raisonnables.',
-  'Intérieur soigné, rénovation récente (cuisine, salle de bain). Exposition sud, luminosité optimale toute la journée. Cave et parking inclus.',
-  'Résidence sécurisée avec digicode. Prestations soignées : parquet massif, volets roulants électriques, cuisine aménagée et équipée.',
-  'Spacieux et très lumineux avec terrasse privative. Proche de toutes commodités. Idéal pour famille ou investissement locatif à fort rendement.',
-];
-
-// Les annonces sont téléchargées depuis le backend API via `fetch` dans le provider.
-
-export const QUARTIERS_LIST = QUARTIERS_TOULON;
 
 const DEFAULT_PROFIL = {
   pieces: 3,
@@ -109,25 +107,92 @@ const DEFAULT_PROFIL = {
 };
 
 export function AppProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState({ nom: 'Marc Ivan', email: 'mariojaris2@gmail.com', profil: 'Agent' });
   const [favoris, setFavoris] = useState(() => {
     try { return JSON.parse(localStorage.getItem('immo_favoris') || '[]'); }
     catch { return []; }
   });
   const [annonces, setAnnonces] = useState([]);
+  const [activeSearch, setActiveSearch] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('homesync_active_search') || 'null'); }
+    catch { return null; }
+  });
+  const [loading, setLoading] = useState(true);
+  const [apiOnline, setApiOnline] = useState(false);
+  const [marketStats, setMarketStats] = useState(null);
+  const [marketDashboard, setMarketDashboard] = useState(null);
+  const [knnOpportunities, setKnnOpportunities] = useState([]);
 
-  // Fetch from Python Backend FastApi (with the session token: disliked properties are filtered out)
-  useEffect(() => {
-    api('/api/properties').then(r => {
-      if (r.ok) setAnnonces(r.data);
-      else console.error('❌ Could not load backend annonces:', r.data);
-    });
-  }, []);
   const [theme, setTheme] = useState('light');
   const [profil, setProfil] = useState(() => {
     try { return JSON.parse(localStorage.getItem('immo_profil') || 'null') || DEFAULT_PROFIL; }
     catch { return DEFAULT_PROFIL; }
   });
+
+  // Load all initial dataset from backend API
+  const loadData = useCallback(async (profileForScoring = DEFAULT_PROFIL) => {
+    setLoading(true);
+    try {
+      const [nationalData, propsData, statsData, dashData, knnData] = await Promise.allSettled([
+        searchNationalProperties(),
+        fetchProperties(),
+        fetchStats(),
+        fetchMarketDashboard(),
+        fetchKnnOpportunities(),
+      ]);
+
+      let loadedProps = [];
+      if (nationalData.status === 'fulfilled' && nationalData.value.length) {
+        loadedProps = nationalData.value;
+        setApiOnline(true);
+      } else if (propsData.status === 'fulfilled') {
+        loadedProps = propsData.value;
+        setApiOnline(true);
+      } else {
+        console.warn('Could not load listings from the backend.');
+      }
+
+      if (statsData.status === 'fulfilled') setMarketStats(statsData.value);
+      if (dashData.status === 'fulfilled') setMarketDashboard(dashData.value);
+      if (knnData.status === 'fulfilled') setKnnOpportunities(knnData.value);
+
+      // The national matching route requires a verified session. Until then the
+      // client score keeps the public catalogue explorable.
+      if (loadedProps.length > 0) {
+        try {
+          const scoredResults = nationalData.status === 'fulfilled' ? [] : await scoreProperties(profileForScoring);
+          if (Array.isArray(scoredResults) && scoredResults.length > 0) {
+            const scoreMap = new Map(scoredResults.map(s => [s.id, s]));
+            loadedProps = loadedProps.map(p => {
+              const scored = scoreMap.get(p.id);
+              if (scored) {
+                return {
+                  ...p,
+                  score: scored.score,
+                  backend_score: scored.score,
+                  backend_relevance: scored.backend_relevance,
+                  backend_market_score: scored.backend_market_score,
+                };
+              }
+              return p;
+            });
+          }
+        } catch (scoreErr) {
+          console.warn('⚠️ [Frontend] Backend scoring failed, using client heuristic:', scoreErr);
+        }
+      }
+
+      setAnnonces(loadedProps);
+    } catch (err) {
+      console.error('❌ [Frontend] Global data fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const toggleFavori = (annonce) => {
     setFavoris(prev =>
@@ -141,17 +206,42 @@ export function AppProvider({ children }) {
 
   const toggleTheme = () => setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
 
-  // Persistance localStorage
+  // LocalStorage persistance
   useEffect(() => { localStorage.setItem('immo_favoris', JSON.stringify(favoris)); }, [favoris]);
   useEffect(() => { localStorage.setItem('immo_profil',  JSON.stringify(profil));  }, [profil]);
+  useEffect(() => {
+    if (activeSearch) sessionStorage.setItem('homesync_active_search', JSON.stringify(activeSearch));
+    else sessionStorage.removeItem('homesync_active_search');
+  }, [activeSearch]);
 
-  // keep body class in sync
   useEffect(() => {
     document.body.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
   return (
-    <AppContext.Provider value={{ user, setUser, favoris, toggleFavori, isFavori, profil, setProfil, annonces, theme, toggleTheme }}>
+    <AppContext.Provider
+      value={{
+        user,
+        setUser,
+        favoris,
+        toggleFavori,
+        isFavori,
+        profil,
+        setProfil,
+        annonces,
+        setAnnonces,
+        activeSearch,
+        setActiveSearch,
+        theme,
+        toggleTheme,
+        loading,
+        apiOnline,
+        marketStats,
+        marketDashboard,
+        knnOpportunities,
+        refreshData: loadData,
+      }}
+    >
       {children}
     </AppContext.Provider>
   );

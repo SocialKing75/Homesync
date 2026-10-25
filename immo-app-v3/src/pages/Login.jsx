@@ -1,179 +1,265 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
-import ChatAgent from '../components/ChatAgent';
+import { useApp, computeScore } from '../context/AppContext';
+import { getReportUrl } from '../services/api';
+import HomeSyncLogo from '../components/HomeSyncLogo';
+import LandingChat from '../components/LandingChat';
+import InteractiveMap, { getQuartierCoords } from '../components/InteractiveMap';
+import PropertyDetailBreakdown from '../components/PropertyDetailBreakdown';
+import InviteModal from '../components/InviteModal';
+import AgenceMessageModal from '../components/AgenceMessageModal';
 import './Login.css';
 
-export default function Login() {
-  const { profil, setProfil, setUser } = useApp();
+const POPULAR_QUARTIERS = [
+  { label: 'Paris', full: 'Paris' }, { label: 'Lyon', full: 'Lyon' },
+  { label: 'Marseille', full: 'Marseille' }, { label: 'Bordeaux', full: 'Bordeaux' },
+  { label: 'Nantes', full: 'Nantes' }, { label: 'Toulouse', full: 'Toulouse' },
+  { label: 'Nice', full: 'Nice' },
+];
 
-  const [typeBien, setTypeBien] = useState(profil?.typeBien?.toLowerCase() || 'appartement');
-  const [typeAppartement, setTypeAppartement] = useState(profil?.typeAppartement || []);
-  const [budgetMax, setBudgetMax] = useState(profil?.prixMax?.toString() || '');
-  const [environnement, setEnvironnement] = useState(profil?.environnement?.[0]?.toLowerCase() || 'urbain');
-  const [error, setError] = useState('');
+export default function Login() {
+  const { annonces, profil, setProfil, favoris, isFavori, toggleFavori, apiOnline, setUser } = useApp();
   const navigate = useNavigate();
 
-  const toggleTypeAppartement = (type) => {
-    setTypeAppartement(prev =>
-      prev.includes(type)
-        ? prev.filter(t => t !== type)
-        : [...prev, type]
-    );
+  const [viewMode, setViewMode] = useState('explore');
+  const [targetQuartier, setTargetQuartier] = useState('France');
+  const [selectedAnnonce, setSelectedAnnonce] = useState(null);
+  const [inspectionAnnonce, setInspectionAnnonce] = useState(null);
+  const [isMapExpanded, setIsMapExpanded] = useState(false);
+
+  // Collaboration State (Inspired by Reference)
+  const [coUsers, setCoUsers] = useState([]);
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [isAgencyModalOpen, setIsAgencyModalOpen] = useState(false);
+  const [agencyModalAnnonce, setAgencyModalAnnonce] = useState(null);
+
+  // Scored properties with coordinates
+  const scoredAnnonces = useMemo(() => {
+    return annonces.map((a, index) => {
+      const base = Number.isFinite(a.lng) && Number.isFinite(a.lat)
+        ? [a.lng, a.lat]
+        : getQuartierCoords(a.quartier || a.ville);
+      const jitterLng = ((index * 17) % 100 - 50) * 0.00012;
+      const jitterLat = ((index * 31) % 100 - 50) * 0.00010;
+      const score = computeScore(a, profil);
+      return {
+        ...a,
+        score,
+        matchScore: score,
+        lng: base[0] + jitterLng,
+        lat: base[1] + jitterLat,
+      };
+    }).sort((a, b) => b.score - a.score);
+  }, [annonces, profil]);
+
+  const goldenMatchCount = useMemo(() => {
+    return scoredAnnonces.filter(a => a.score >= 75).length;
+  }, [scoredAnnonces]);
+
+  const handleQuartierChipClick = (qFull) => {
+    setTargetQuartier(qFull);
+    setProfil(prev => ({
+      ...prev,
+      quartiers: [qFull]
+    }));
   };
 
-  const mapTypeBien = (type) => {
-    if (type === 'appartement') return 'Appartement';
-    if (type === 'maison') return 'Maison';
-    return 'Tous';
-  };
-
-  const mapEnvironnement = (env) => {
-    if (env === 'urbain') return ['Ville', 'Centre-Ville'];
-    if (env === 'periurbain') return ['Périurbain', 'Résidentiel'];
-    if (env === 'rural') return ['Rural', 'Campagne'];
-    return ['Ville'];
-  };
-
-  const getPiecesFromTypes = (types) => {
-    if (!types.length) return 3;
-    const nums = types.map(t => Number.parseInt(t.replace('T', ''), 10));
-    return Math.min(...nums);
-  };
-
-  const handleSubmit = () => {
-    if (!typeBien) {
-      setError('Veuillez sélectionner un type de bien.');
-      return;
-    }
-    if ((typeBien === 'appartement' || typeBien === 'les-deux') && typeAppartement.length === 0) {
-      setError("Veuillez sélectionner au moins un type d'appartement.");
-      return;
-    }
-    if (!budgetMax) {
-      setError('Veuillez indiquer votre budget maximum.');
-      return;
-    }
-    if (!environnement) {
-      setError('Veuillez sélectionner un environnement.');
-      return;
-    }
-
-    const newProfil = {
-      ...profil,
-      typeBien: mapTypeBien(typeBien),
-      typeAppartement,
-      prixMax: Number.parseInt(budgetMax, 10),
-      pieces: getPiecesFromTypes(typeAppartement),
-      environnement: mapEnvironnement(environnement),
-    };
-
+  const handleChatSearchUpdate = (newProfil) => {
     setProfil(newProfil);
-    setUser({ profil: newProfil });
-    navigate('/accueil');
+    if (newProfil.quartiers?.[0]) {
+      setTargetQuartier(newProfil.quartiers[0]);
+    }
+  };
+
+  const handleOpenDetail = (id) => {
+    setUser(prev => ({
+      ...prev,
+      nom: prev?.nom || 'Marc Ivan',
+      email: prev?.email || 'mariojaris2@gmail.com',
+      profil: 'Acheteur',
+    }));
+    navigate(`/bien/${encodeURIComponent(id)}`);
   };
 
   return (
-    <div className="landing-wrapper">
-      <div className="landing-hero" style={{ backgroundImage: "url('/hero_bg.png')" }}>
-        <header className="landing-header">
-          <div className="landing-logo">
-            <img src="/logo-toulon-ai.svg" alt="ToulonFIND AI" style={{ height: '36px', filter: 'brightness(0) invert(1)' }} />
-          </div>
-        </header>
+    <div className="unified-landing-root">
+      <header className="workspace-nav">
+        <button className="workspace-brand" onClick={() => navigate('/')} aria-label="Retour à l’accueil HomeSync"><HomeSyncLogo /></button>
+        <div className="workspace-project"><small>PROJET ACTIF</small><strong>Mon prochain chez-moi</strong></div>
+        <nav className="workspace-links"><button className="active">Recherche</button><button onClick={() => navigate('/matching')}>Correspondances</button><button onClick={() => navigate('/favoris')}>Favoris{favoris.length ? ` (${favoris.length})` : ''}</button><button onClick={() => navigate('/messages')}>Messages</button></nav>
+        <div className="workspace-people"><span className="workspace-avatar primary">M</span>{coUsers.slice(0, 1).map(u => <span className="workspace-avatar" key={u.name}>{u.name[0]}</span>)}<button onClick={() => setIsInviteOpen(true)}>Inviter</button></div>
+      </header>
 
-        <div className="hero-content">
-          <h1 className="hero-title">Trouver le bon bien<br/>au bon prix</h1>
-          
-          <div className="hero-pill-toggle">
-            <button 
-              className={`pill-btn ${typeBien === 'appartement' ? 'active' : ''}`}
-              onClick={() => setTypeBien('appartement')}
+      {/* ═══════ MAIN CONTENT AREA ═══════ */}
+      {viewMode === 'tinder' ? (
+        /* ── TINDER MATCHER FULL VIEW ── */
+        <div className="landing-tinder-wrapper">
+          <div className="tinder-nav-banner">
+            <button
+              className="back-to-explore-btn"
+              onClick={() => setViewMode('explore')}
             >
-              Appartement
+              Retour à la conversation
             </button>
-            <button 
-              className={`pill-btn ${typeBien === 'maison' ? 'active' : ''}`}
-              onClick={() => setTypeBien('maison')}
-            >
-              Maison
-            </button>
-            <button 
-              className={`pill-btn ${typeBien === 'les-deux' ? 'active' : ''}`}
-              onClick={() => setTypeBien('les-deux')}
-            >
-              Les deux
-            </button>
+            <span className="tinder-banner-golden-note">
+              Les biens prioritaires sont mis en avant dans cette sélection
+            </span>
           </div>
         </div>
-      </div>
-
-      <div className="landing-main">
-        <ChatAgent />
-
-        <div className="landing-search-card">
-          <h2 className="card-title">Ou affinez vos critères manuellement</h2>
-          
-          {(typeBien === 'appartement' || typeBien === 'les-deux') && (
-            <div className="form-group">
-              <label>Type de bien ciblé</label>
-              <div className="chips-container">
-                {['T2', 'T3', 'T4', 'T5'].map(type => (
-                  <button
-                    type="button"
-                    key={type}
-                    className={`chip-btn ${typeAppartement.includes(type) ? 'active' : ''}`}
-                    onClick={() => toggleTypeAppartement(type)}
-                  >
-                    {type}
-                  </button>
-                ))}
-              </div>
-            </div>
+      ) : (
+        /* ── CHAT & MAP UNIFIED WORKSPACE (ON THE SAME PAGE) ── */
+        <main className={`landing-workspace ${isMapExpanded ? 'map-only-expanded' : ''}`}>
+          {/* LEFT: CONVERSATIONAL CHAT OR PROPERTY DETAIL BREAKDOWN (Screenshot 3) */}
+          {!isMapExpanded && (
+            <aside className="workspace-chat-pane">
+              {inspectionAnnonce ? (
+                <PropertyDetailBreakdown
+                  annonce={inspectionAnnonce}
+                  onBack={() => setInspectionAnnonce(null)}
+                  coUsers={coUsers}
+                  isFavori={isFavori(inspectionAnnonce.id)}
+                  onToggleFavori={() => toggleFavori(inspectionAnnonce)}
+                  onRequestVisit={() => {
+                    setAgencyModalAnnonce(inspectionAnnonce);
+                    setIsAgencyModalOpen(true);
+                  }}
+                  onOpenTinder={() => navigate('/matching')}
+                />
+              ) : (
+                <LandingChat
+                  onQuartierSelect={(q) => setTargetQuartier(q)}
+                  onSearchUpdate={handleChatSearchUpdate}
+                  onLaunchMatching={(tab) => {
+                    if (tab === 'tinder') navigate('/matching');
+                    else navigate('/recherche');
+                  }}
+                  coUsers={coUsers}
+                  onOpenInvite={() => setIsInviteOpen(true)}
+                  onOpenContactAgency={(a) => {
+                    setAgencyModalAnnonce(a);
+                    setIsAgencyModalOpen(true);
+                  }}
+                />
+              )}
+            </aside>
           )}
 
-          <div className="form-row">
-            <div className="form-group flex-1">
-              <label htmlFor="budget-input">Budget maximum</label>
-              <div className="input-with-icon">
-                <input
-                  id="budget-input"
-                  type="number"
-                  placeholder="Ex: 300000"
-                  value={budgetMax}
-                  onChange={e => setBudgetMax(e.target.value)}
-                />
-                <span className="input-suffix">€</span>
-              </div>
+          {/* RIGHT: INTERACTIVE MAP (LINKED TO CHAT) */}
+          <section className={`workspace-map-pane ${isMapExpanded ? 'pane-expanded' : ''}`}>
+            {/* Top Map Context Pill */}
+            <div className="map-context-floating-bar">
+              <span className="mcf-title">
+                Secteur actif : <strong>{targetQuartier ? targetQuartier.split('-')[0] : 'France'}</strong>
+              </span>
+              <span className="mcf-count">
+                {scoredAnnonces.length} biens indexés · {goldenMatchCount} priorités
+              </span>
+              <button
+                className="mcf-tinder-quick-btn"
+                onClick={() => navigate('/matching')}
+              >
+                Voir la sélection
+              </button>
             </div>
 
-            <div className="form-group flex-1">
-              <label>Secteur géographique</label>
-              <div className="select-wrapper">
-                <select value={environnement} onChange={e => setEnvironnement(e.target.value)}>
-                  <option value="" disabled>Choisir un environnement...</option>
-                  <option value="urbain">Urbain (Ville, Centre)</option>
-                  <option value="periurbain">Périurbain (Résidentiel)</option>
-                  <option value="rural">Rural (Campagne)</option>
-                </select>
-                <span className="select-arrow">▼</span>
+            <InteractiveMap
+              annonces={scoredAnnonces}
+              targetQuartier={targetQuartier}
+              selectedAnnonce={selectedAnnonce}
+              onSelectAnnonce={(a) => {
+                setSelectedAnnonce(a);
+              }}
+              isExpanded={isMapExpanded}
+              onToggleExpand={() => setIsMapExpanded(prev => !prev)}
+              coUsers={coUsers}
+            />
+
+            {/* FLOATING GOLDEN PREVIEW CARD WHEN ANNONCE IS CLICKED */}
+            {selectedAnnonce && !inspectionAnnonce && (
+              <div className="map-selected-golden-card">
+                <button
+                  className="card-close-x"
+                  onClick={() => setSelectedAnnonce(null)}
+                >
+                  ✕
+                </button>
+
+                <div className="preview-card-img-wrap">
+                  <img
+                    src={selectedAnnonce.img}
+                    alt={selectedAnnonce.titre || selectedAnnonce.type}
+                    className="preview-card-img"
+                  />
+                  <div className="preview-golden-badge">
+                    <span className="score-text">{selectedAnnonce.score}% COMPATIBILITÉ</span>
+                  </div>
+                  <button
+                    className={`preview-heart-btn ${isFavori(selectedAnnonce.id) ? 'active' : ''}`}
+                    onClick={() => toggleFavori(selectedAnnonce)}
+                    title={isFavori(selectedAnnonce.id) ? 'Retirer' : 'Ajouter aux favoris'}
+                  >
+                    ♥
+                  </button>
+                </div>
+
+                <div className="preview-card-body">
+                  <div className="preview-price-row">
+                    <span className="preview-price">{selectedAnnonce.prix?.toLocaleString('fr-FR')} €</span>
+                    <span className="preview-pm2">{selectedAnnonce.prixM2?.toLocaleString('fr-FR')} €/m²</span>
+                  </div>
+
+                  <h4 className="preview-title">
+                    {selectedAnnonce.titre || `${selectedAnnonce.type} ${selectedAnnonce.pieces} pièces`}
+                  </h4>
+
+                  <div className="preview-meta-chips">
+                    <span>{selectedAnnonce.quartier}</span>
+                    <span>{selectedAnnonce.surface} m²</span>
+                    <span>{selectedAnnonce.pieces} p.</span>
+                    <span>{selectedAnnonce.etage || 'RDC'}</span>
+                  </div>
+
+                  <div className="preview-actions">
+                    <button
+                      id="btn-inspect-accord"
+                      className="preview-btn-inspect"
+                      onClick={() => setInspectionAnnonce(selectedAnnonce)}
+                      title="Inspecter le compromis et les critères côte à côte"
+                    >
+                      Analyser le bien
+                    </button>
+                    <button
+                      className="preview-btn-main"
+                      onClick={() => handleOpenDetail(selectedAnnonce.id)}
+                    >
+                      Fiche complète
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            )}
+          </section>
+        </main>
+      )}
 
-          {error && <div className="error-message">{error}</div>}
+      {/* ── MODALS (Collaborative Invite & Agency Visit Request) ── */}
+      <InviteModal
+        isOpen={isInviteOpen}
+        onClose={() => setIsInviteOpen(false)}
+        onInviteSuccess={(name) => {
+          setCoUsers(prev => {
+            const exists = prev.some(u => u.name.toLowerCase() === name.toLowerCase());
+            return exists ? prev : [...prev, { name, active: true }];
+          });
+        }}
+      />
 
-          <button className="primary-search-btn" onClick={handleSubmit}>
-            Lancer la recherche
-          </button>
-        </div>
-        
-        <div className="landing-footer-teaser">
-          {/* Subtle teaser for the AI dashboard to make the landing complete */}
-          <p className="teaser-title">Les meilleures opportunités à Toulon identifiées par notre IA</p>
-          <p className="teaser-sub">Remplissez vos critères pour accéder au dashboard prédictif.</p>
-        </div>
-      </div>
+      <AgenceMessageModal
+        isOpen={isAgencyModalOpen}
+        onClose={() => setIsAgencyModalOpen(false)}
+        annonce={agencyModalAnnonce}
+        coUsers={coUsers}
+      />
     </div>
   );
 }

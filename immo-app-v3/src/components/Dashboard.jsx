@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp, computeScore } from '../context/AppContext';
-import { API_BASE } from '../api';
+import {
+  predictPrice,
+  fetchRegressionData,
+  fetchKnnOpportunities,
+} from '../services/api';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar,
@@ -161,7 +165,7 @@ const TABS_ACHETEUR = [
 ];
 
 export default function Dashboard({ forcedTab }) {
-  const { theme, profil, annonces, user } = useApp();
+  const { theme, profil, annonces, user, marketDashboard, marketStats, knnOpportunities: ctxKnn, apiOnline } = useApp();
   const navigate = useNavigate();
 
   const isAcheteur = user?.profil === 'Acheteur';
@@ -176,6 +180,7 @@ export default function Dashboard({ forcedTab }) {
   const [predType,   setPredType]   = useState(0);
   const [predEtage,  setPredEtage]  = useState(3);
   const [predResult, setPredResult] = useState(null);
+  const [predLoading, setPredLoading] = useState(false);
 
   // Synchronize Tab Override from Parent (Accueil)
   useEffect(() => {
@@ -185,6 +190,15 @@ export default function Dashboard({ forcedTab }) {
        if (forcedTab === 'opportunites') setActiveTab('opportunites');
     }
   }, [forcedTab]);
+
+  // Dynamic Dataset from Backend or fallback
+  const currentQuartiers = marketDashboard?.QUARTIERS?.length ? marketDashboard.QUARTIERS : QUARTIERS;
+  const currentPrixMensuel = marketDashboard?.PRIX_MENSUEL?.length ? marketDashboard.PRIX_MENSUEL : PRIX_MENSUEL;
+  const currentVolumeTrim = marketDashboard?.VOLUME_TRIM?.length ? marketDashboard.VOLUME_TRIM : VOLUME_TRIM;
+  const currentTypeData = marketDashboard?.TYPE_DATA?.length ? marketDashboard.TYPE_DATA : TYPE_DATA;
+  const currentTypeDataVol = marketDashboard?.TYPE_DATA_VOL?.length ? marketDashboard.TYPE_DATA_VOL : TYPE_DATA_VOL;
+  const currentKpiEtat = marketDashboard?.KPI_ETAT?.length ? marketDashboard.KPI_ETAT : KPI_ETAT;
+  const currentKpiTendances = marketDashboard?.KPI_TENDANCES?.length ? marketDashboard.KPI_TENDANCES : KPI_TENDANCES;
 
   // State pour les données de régression de l'API
   const [regressionData, setRegressionData] = useState(null);
@@ -196,26 +210,28 @@ export default function Dashboard({ forcedTab }) {
 
   // Charger les données k-NN
   useEffect(() => {
-    if (activeTab === 'opportunites' && !opportunitesData) {
-      setOpportunitesLoading(true);
-      fetch(`${API_BASE}/api/knn_opportunities`)
-        .then(res => res.json())
-        .then(data => {
-          setOpportunitesData(data);
-          setOpportunitesLoading(false);
-        })
-        .catch(() => {
-          setOpportunitesLoading(false);
-        });
+    if (activeTab === 'opportunites') {
+      if (ctxKnn?.length > 0 && !opportunitesData) {
+        setOpportunitesData(ctxKnn);
+      } else if (!opportunitesData) {
+        setOpportunitesLoading(true);
+        fetchKnnOpportunities()
+          .then(data => {
+            setOpportunitesData(data);
+            setOpportunitesLoading(false);
+          })
+          .catch(() => {
+            setOpportunitesLoading(false);
+          });
+      }
     }
-  }, [activeTab, opportunitesData]);
+  }, [activeTab, opportunitesData, ctxKnn]);
 
   // Charger les données de régression depuis l'API
   useEffect(() => {
     if (activeTab === 'regression' && !regressionData) {
       setRegressionLoading(true);
-      fetch(`${API_BASE}/api/regression`)
-        .then(res => res.json())
+      fetchRegressionData()
         .then(data => {
           setRegressionData(data);
           setRegressionLoading(false);
@@ -238,8 +254,8 @@ export default function Dashboard({ forcedTab }) {
   const topAnnonces     = [...annoncesScored].sort((a, b) => b.score - a.score).slice(0, 3);
   const nbBudget        = annonces.filter(a => a.prix <= profil.prixMax).length;
   const nbTopMatch      = annoncesScored.filter(a => a.score >= 85).length;
-  const avgScore        = Math.round(annoncesScored.reduce((s, a) => s + a.score, 0) / annoncesScored.length);
-  const quartierBudget  = QUARTIERS.map(q => {
+  const avgScore        = annoncesScored.length ? Math.round(annoncesScored.reduce((s, a) => s + a.score, 0) / annoncesScored.length) : 0;
+  const quartierBudget  = currentQuartiers.map(q => {
     const qAnn  = annonces.filter(a => a.quartier === q.nom);
     const avg   = qAnn.length
       ? Math.round(qAnn.reduce((s, a) => s + a.prix, 0) / qAnn.length)
@@ -261,52 +277,116 @@ export default function Dashboard({ forcedTab }) {
     );
   };
 
-  function doPrediction() {
+  async function doPrediction() {
+    setPredLoading(true);
+    try {
+      const res = await predictPrice({
+        surface_m2: predSurf,
+        rooms: Math.max(1, Math.round(predSurf / 25)),
+        floor: predEtage,
+        year_built: 2015,
+        distance_to_center_km: 1.5,
+      });
+      if (res && res.predicted_price) {
+        let qOffset = 0;
+        if (QUARTIER_COEF[predQ] !== undefined) {
+          qOffset = QUARTIER_COEF[predQ] * 0.25;
+        } else if (marketDashboard?.QUARTIERS?.length && marketStats?.avg_price_m2) {
+          const matchedQ = marketDashboard.QUARTIERS.find(q => q.nom.toLowerCase() === predQ.toLowerCase());
+          if (matchedQ && matchedQ.moy) {
+            qOffset = (matchedQ.moy - marketStats.avg_price_m2) * predSurf * 0.35;
+          }
+        }
+        const val = Math.max(10000, Math.round(res.predicted_price + qOffset + Number(predType)));
+        setPredResult({
+          val,
+          min: Math.round(val * 0.92),
+          max: Math.round(val * 1.08),
+          r_squared: res.r_squared,
+          coefficients: res.coefficients
+        });
+        return;
+      }
+    } catch (err) {
+      console.warn("Using local formula fallback for prediction:", err);
+    } finally {
+      setPredLoading(false);
+    }
     const base = 24500 + predSurf * 3250 + (QUARTIER_COEF[predQ] || 0) + Number(predType) + predEtage * 2100;
     setPredResult({ val: base, min: base - 18400, max: base + 18400 });
   }
 
   // Tableau Prix/m² par quartier (réutilisé dans Etat + Acheteur)
-  const TableauQuartiers = () => (
-    <div className="bento-card bento-full" style={{ padding: 0 }}>
-      <div className="table-header-row">
-        <h3 className="bento-title" style={{ marginBottom: 0 }}>Prix/m² par quartier — Toulon</h3>
-        <span className="chart-badge" style={{ background: 'rgba(56,189,248,0.1)', color: 'var(--neon-blue)', border: '1px solid rgba(56,189,248,0.3)', padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700 }}>DVF 2023–2024</span>
-      </div>
-      <div style={{ overflowX: 'auto' }}>
-        <table className="quartiers-table">
-          <thead>
-            <tr>
-              <th>Quartier</th>
-              <th>Moy. €/m²</th>
-              <th>Méd. €/m²</th>
-              <th>Vol. tx</th>
-              <th>Évol. 12m</th>
-              <th>Marché</th>
-            </tr>
-          </thead>
-          <tbody>
-            {QUARTIERS.map(q => (
-              <tr key={q.nom}>
-                <td className="td-quartier">{q.nom}</td>
-                <td className="td-mono td-bold">{q.moy.toLocaleString('fr-FR')} €</td>
-                <td className="td-mono">{q.med.toLocaleString('fr-FR')} €</td>
-                <td className="td-mono td-muted">{q.vol}</td>
-                <td className={q.evol >= 0 ? 'delta-up' : 'delta-down'} style={{ fontSize: 13, fontWeight: 700 }}>
-                  {q.evol >= 0 ? '+' : ''}{q.evol}%
-                </td>
-                <td>
-                  <span className={`score-badge score-${q.score}`} style={{ background: q.score === 'hot' ? 'rgba(255,87,34,0.1)' : 'rgba(0,0,0,0.04)', color: q.score === 'hot' ? 'var(--neon-orange)' : 'var(--text-muted)' }}>
-                    {q.score === 'hot' ? 'Actif' : q.score === 'ok' ? 'Stable' : 'Calme'}
-                  </span>
-                </td>
+  const TableauQuartiers = () => {
+    const list = filterQ
+      ? currentQuartiers.filter(q => q.nom.toLowerCase().includes(filterQ.toLowerCase()))
+      : currentQuartiers;
+
+    return (
+      <div className="bento-card bento-full" style={{ padding: 0 }}>
+        <div className="table-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <h3 className="bento-title" style={{ marginBottom: 4 }}>
+              Prix/m² par quartier — Toulon ({currentQuartiers.length} quartiers)
+            </h3>
+            <p className="bento-sub">Données analysées par le backend Python FastAPI & DVF</p>
+          </div>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <input
+              type="text"
+              placeholder="Rechercher un quartier..."
+              value={filterQ}
+              onChange={e => setFilterQ(e.target.value)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: 8,
+                border: '1px solid #cbd5e1',
+                background: '#ffffff',
+                fontSize: 12,
+                color: '#0f172a',
+                outline: 'none',
+              }}
+            />
+            <span className="chart-badge" style={{ background: 'rgba(56,189,248,0.1)', color: 'var(--neon-blue)', border: '1px solid rgba(56,189,248,0.3)', padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700 }}>
+              {marketDashboard ? '● FastAPI Dataset DVF' : 'DVF 2023–2024'}
+            </span>
+          </div>
+        </div>
+        <div style={{ overflowX: 'auto', maxHeight: 420 }}>
+          <table className="quartiers-table">
+            <thead>
+              <tr>
+                <th>Quartier</th>
+                <th>Moy. €/m²</th>
+                <th>Méd. €/m²</th>
+                <th>Vol. tx</th>
+                <th>Évol. 12m</th>
+                <th>Marché</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {list.map(q => (
+                <tr key={q.nom}>
+                  <td className="td-quartier">{q.nom}</td>
+                  <td className="td-mono td-bold">{q.moy.toLocaleString('fr-FR')} €</td>
+                  <td className="td-mono">{q.med.toLocaleString('fr-FR')} €</td>
+                  <td className="td-mono td-muted">{q.vol}</td>
+                  <td className={q.evol >= 0 ? 'delta-up' : 'delta-down'} style={{ fontSize: 13, fontWeight: 700 }}>
+                    {q.evol >= 0 ? '+' : ''}{q.evol}%
+                  </td>
+                  <td>
+                    <span className={`score-badge score-${q.score}`} style={{ background: q.score === 'hot' ? 'rgba(255,87,34,0.1)' : 'rgba(0,0,0,0.04)', color: q.score === 'hot' ? 'var(--neon-orange)' : 'var(--text-muted)' }}>
+                      {q.score === 'hot' ? 'Actif' : q.score === 'ok' ? 'Stable' : 'Calme'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="dashboard">
@@ -332,12 +412,12 @@ export default function Dashboard({ forcedTab }) {
             <div className="bento-card bento-square">
               <p className="bento-title">Top correspondances</p>
               <p className="bento-value">{nbTopMatch}</p>
-              <p className="bento-sub">score ≥ 85 / 100</p>
+              <p className="bento-sub">score ≥ 85% Match</p>
             </div>
             <div className="bento-card bento-square">
               <p className="bento-title">Score moyen</p>
-              <p className="bento-value">{avgScore}</p>
-              <p className="bento-sub">/ 100 pts</p>
+              <p className="bento-value">{avgScore}%</p>
+              <p className="bento-sub">Match global</p>
             </div>
             <div className="bento-card bento-square">
               <p className="bento-title">Marché Toulon</p>
@@ -379,7 +459,7 @@ export default function Dashboard({ forcedTab }) {
                       <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{a.prix.toLocaleString('fr-FR')} €</div>
                       <div style={{ fontSize: 11, color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.type} · {a.quartier} · {a.surface} m²</div>
                     </div>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: sc >= 85 ? 'var(--neon-blue)' : '#0f172a' }}>{sc}</div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: sc >= 85 ? 'var(--neon-orange)' : '#0f172a' }}>🔥 {sc}%</div>
                   </div>
                 );
               })}
@@ -480,7 +560,7 @@ export default function Dashboard({ forcedTab }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {QUARTIERS
+                      {currentQuartiers
                         .filter(q => q.nom.toLowerCase().includes(filterQ.toLowerCase()))
                         .map(q => (
                           <tr key={q.nom}>
@@ -505,8 +585,8 @@ export default function Dashboard({ forcedTab }) {
             </>
           ) : (
             <>
-              {/* ── KPI agent (5 indicateurs) ── */}
-              {KPI_ETAT.map((k, i) => (
+              {/* ── KPI agent (5 indicateurs backend) ── */}
+              {currentKpiEtat.map((k, i) => (
                 <div key={i} className={`bento-card bg-glow delay-${(i % 5) + 1} ${i < 2 ? 'bento-square' : 'span-3'}`} style={{ gridColumn: i < 2 ? 'span 6' : 'span 4' }}>
                   <p className="bento-title">{k.label}</p>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
@@ -519,11 +599,11 @@ export default function Dashboard({ forcedTab }) {
 
               <div className="bento-card bento-wide delay-3">
                 <h3 className="bento-title">Évolution prix/m² mensuel</h3>
-                <p className="bento-sub" style={{ marginBottom: 16 }}>Toulon • 2023–2024</p>
+                <p className="bento-sub" style={{ marginBottom: 16 }}>Toulon • Données réelles DVF</p>
                 <ResponsiveContainer width="100%" height={240}>
-                  <LineChart data={PRIX_MENSUEL} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
+                  <LineChart data={currentPrixMensuel} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
                     <XAxis dataKey="mois" tick={{ fontSize: 10, fill: '#334155' }} interval={2} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 10, fill: '#334155' }} domain={[3200, 3800]} tickFormatter={v => `${v}€`} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: '#334155' }} domain={['auto', 'auto']} tickFormatter={v => `${v}€`} axisLine={false} tickLine={false} />
                     <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(0,0,0,0.1)' }} />
                     <Line type="monotone" dataKey="prix" name="€/m²" stroke="var(--neon-orange)" strokeWidth={4} dot={false} activeDot={{ r: 6, fill: 'var(--neon-orange)', stroke: '#ffffff', strokeWidth: 2 }} />
                   </LineChart>
@@ -534,7 +614,7 @@ export default function Dashboard({ forcedTab }) {
                 <h3 className="bento-title">Volume partiel</h3>
                 <p className="bento-sub" style={{ marginBottom: 16 }}>Transactions par trimestre</p>
                 <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={VOLUME_TRIM} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
+                  <BarChart data={currentVolumeTrim} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
                     <XAxis dataKey="trim" tick={{ fontSize: 10, fill: '#334155' }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fontSize: 10, fill: '#334155' }} axisLine={false} tickLine={false} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
@@ -552,7 +632,7 @@ export default function Dashboard({ forcedTab }) {
       {/* ══════════════════════════ TENDANCES ══════════════════════════ */}
       {activeTab === 'tendances' && (
         <div className="bento-grid">
-          {KPI_TENDANCES.map((k, i) => (
+          {currentKpiTendances.map((k, i) => (
             <div key={i} className={`bento-card bg-glow delay-${(i % 5) + 1} ${i < 2 ? 'bento-square' : 'span-3'}`} style={{ gridColumn: i < 2 ? 'span 6' : 'span 4' }}>
               <p className="bento-title">{k.label}</p>
               <p className={`bento-value ${k.green ? 'orange' : k.red ? 'text-red-500' : ''}`} style={{ fontSize: k.value.length > 6 ? 24 : 32 }}>{k.value}</p>
@@ -564,7 +644,7 @@ export default function Dashboard({ forcedTab }) {
           <div className="bento-card bento-wide delay-3">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
               <div>
-                <h3 className="bento-title">Distribution prix/m² par quartier</h3>
+                <h3 className="bento-title">Distribution prix/m² par quartier (Top 10)</h3>
                 <p className="bento-sub">{metricBar === 'moy' ? 'Moyenne' : 'Médiane'} — €/m²</p>
               </div>
               <div className="toggle-pills">
@@ -573,9 +653,9 @@ export default function Dashboard({ forcedTab }) {
               </div>
             </div>
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={QUARTIERS} margin={{ top: 10, right: 10, left: -20, bottom: 60 }}>
+              <BarChart data={currentQuartiers.slice(0, 10)} margin={{ top: 10, right: 10, left: -20, bottom: 60 }}>
                 <XAxis dataKey="nom" tick={{ fontSize: 10, fill: '#334155', angle: -45, textAnchor: 'end' }} interval={0} height={70} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: '#334155' }} tickFormatter={v => `${v}€`} domain={[0, 5500]} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: '#334155' }} tickFormatter={v => `${v}€`} domain={[0, 'auto']} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} formatter={v => `${v.toLocaleString('fr-FR')} €/m²`} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
                 {metricBar === 'moy'
                   ? <Bar dataKey="moy" name="Moyen €/m²"   fill="var(--neon-orange)" radius={[4, 4, 0, 0]} />
@@ -589,7 +669,7 @@ export default function Dashboard({ forcedTab }) {
           <div className="bento-card bento-tall delay-4">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
               <div>
-                <h3 className="bento-title">Répartition</h3>
+                <h3 className="bento-title">Répartition Typologie</h3>
                 <p className="bento-sub">{metricPie === 'tx' ? 'Nombre' : 'Volume €'}</p>
               </div>
               <div className="toggle-pills" style={{ transform: 'scale(0.85)', transformOrigin: 'top right' }}>
@@ -598,7 +678,7 @@ export default function Dashboard({ forcedTab }) {
               </div>
             </div>
             {(() => {
-              const data = metricPie === 'tx' ? TYPE_DATA : TYPE_DATA_VOL;
+              const data = metricPie === 'tx' ? currentTypeData : currentTypeDataVol;
               const fmt  = metricPie === 'tx'
                 ? v => `${v.toLocaleString('fr-FR')} tx`
                 : v => `${Math.round(v / 1000000).toLocaleString('fr-FR')} M€`;
@@ -689,44 +769,58 @@ export default function Dashboard({ forcedTab }) {
                 <p className="bento-title" style={{ fontSize: 18, color: 'var(--neon-orange)', animation: 'pulse 1.5s infinite' }}>Analyse géospatiale k-NN en cours...</p>
              </div>
           ) : opportunitesData?.length > 0 ? (
-            opportunitesData.map((o, i) => (
-              <div key={i} className={`bento-card bg-glow delay-${(i % 5) + 2} bento-square`}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                  <div style={{ background: '#fff2ea', color: 'var(--neon-orange)', padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 800, border: '1px solid rgba(255, 87, 34, 0.3)' }}>
-                    ◉ Sous-évalué {o.underval.toFixed(1)}%
-                  </div>
-                </div>
-                
-                <div style={{ fontSize: 28, fontWeight: 800, color: '#0f172a', marginBottom: 4, letterSpacing: '-0.02em', fontFeatureSettings: '"tnum"' }}>
-                  {fmtPrix(o.prix)}
-                </div>
-                
-                <div style={{ fontSize: 13, color: '#64748b', marginBottom: 16 }}>
-                  {o.type} · {o.surf} m² · <span style={{ color: '#0f172a', fontWeight: 600 }}>{o.quartier}</span><br />
-                  {o.pm2?.toLocaleString('fr-FR')} €/m² · <span style={{ fontStyle: 'italic' }}>moy. voisins : {Math.round(o.avgPm2).toLocaleString('fr-FR')} €/m²</span>
-                </div>
-                
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, color: 'var(--neon-orange)', marginBottom: 6 }}>
-                    <span>Potentiel de gain</span>
-                    <span>Δ {o.underval.toFixed(1)}%</span>
-                  </div>
-                  <div style={{ height: 6, width: '100%', background: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${Math.min(100, o.underval)}%`, background: 'var(--neon-orange)', borderRadius: 3, boxShadow: 'none' }} />
-                  </div>
-                </div>
-                
-                <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 12 }}>
-                  <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', marginBottom: 8, fontWeight: 700 }}>k-NN · biens similaires</div>
-                  {o.neighbors?.slice(0, 3).map((n, j) => (
-                    <div key={j} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#64748b', padding: '4px 0' }}>
-                      <span>{n.quartier?.split(',')[0]} · {n.surf}m²</span>
-                      <span style={{ color: '#0f172a', fontWeight: 600 }}>{Math.round(n.pm2).toLocaleString('fr-FR')} €/m²</span>
+            opportunitesData.map((o, i) => {
+              const propId = o.id || o.property?.id;
+              return (
+                <div
+                  key={i}
+                  className={`bento-card bg-glow delay-${(i % 5) + 2} bento-square`}
+                  style={{ cursor: propId ? 'pointer' : 'default', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
+                  onClick={() => propId && navigate('/annonce/' + propId)}
+                  title={propId ? "Cliquer pour examiner la fiche complète et le rapport PDF" : ""}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                    <div style={{ background: '#fff2ea', color: 'var(--neon-orange)', padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 800, border: '1px solid rgba(255, 87, 34, 0.3)' }}>
+                      ◉ Sous-évalué {o.underval?.toFixed(1)}%
                     </div>
-                  ))}
+                    {propId && (
+                      <span style={{ fontSize: 11, color: 'var(--neon-blue)', fontWeight: 600 }}>
+                        Fiche #{propId} →
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div style={{ fontSize: 28, fontWeight: 800, color: '#0f172a', marginBottom: 4, letterSpacing: '-0.02em', fontFeatureSettings: '"tnum"' }}>
+                    {fmtPrix(o.prix)}
+                  </div>
+                  
+                  <div style={{ fontSize: 13, color: '#64748b', marginBottom: 16 }}>
+                    {o.type} · {o.surf} m² · <span style={{ color: '#0f172a', fontWeight: 600 }}>{o.quartier}</span><br />
+                    {o.pm2?.toLocaleString('fr-FR')} €/m² · <span style={{ fontStyle: 'italic' }}>moy. voisins : {Math.round(o.avgPm2).toLocaleString('fr-FR')} €/m²</span>
+                  </div>
+                  
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, color: 'var(--neon-orange)', marginBottom: 6 }}>
+                      <span>Décote estimée (k-NN)</span>
+                      <span>Δ {o.underval?.toFixed(1)}%</span>
+                    </div>
+                    <div style={{ height: 6, width: '100%', background: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${Math.min(100, o.underval)}%`, background: 'var(--neon-orange)', borderRadius: 3, boxShadow: 'none' }} />
+                    </div>
+                  </div>
+                  
+                  <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 12 }}>
+                    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', marginBottom: 8, fontWeight: 700 }}>5 plus proches voisins géospatiaux</div>
+                    {o.neighbors?.slice(0, 3).map((n, j) => (
+                      <div key={j} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#64748b', padding: '4px 0' }}>
+                        <span>{n.quartier?.split(',')[0]} · {n.surf}m²</span>
+                        <span style={{ color: '#0f172a', fontWeight: 600 }}>{Math.round(n.pm2).toLocaleString('fr-FR')} €/m²</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className="bento-card bento-wide delay-1">
                <p className="bento-sub">Aucune opportunité sous-évaluée détectée.</p>
@@ -746,7 +840,11 @@ export default function Dashboard({ forcedTab }) {
               {/* Le scatter plot */}
               <div className="bento-card bento-wide delay-1">
                 <h3 className="bento-title">Modèle de Régression IA (DVF Toulon)</h3>
-                <p className="bento-sub" style={{ marginBottom: 16 }}>{regressionData ? `n = ${regressionData.n_transactions} transactions · R² = ${regressionData.r_squared}` : 'Chargement...'}</p>
+                <p className="bento-sub" style={{ marginBottom: 16 }}>
+                  {regressionData
+                    ? `n = ${regressionData.n_transactions} transactions · R² = ${regressionData.r_squared} · Pente = +${regressionData.beta?.toLocaleString('fr-FR')} €/m² · RMSE = ${regressionData.rmse?.toLocaleString('fr-FR')} €`
+                    : 'Chargement des données économétriques...'}
+                </p>
                 <ResponsiveContainer width="100%" height={320}>
                   <ComposedChart margin={{ top: 10, right: 10, left: -20, bottom: 24 }}>
                     <XAxis
@@ -780,7 +878,12 @@ export default function Dashboard({ forcedTab }) {
 
               {/* Estimateur Console Bento */}
               <div className="bento-card bento-tall delay-2 predictor-tool" style={{ background: '#ffffff' }}>
-                <h3 className="bento-title" style={{ color: '#0f172a' }}>▸ Estimateur IA</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <h3 className="bento-title" style={{ color: '#0f172a', margin: 0 }}>▸ Estimateur IA (OLS)</h3>
+                  <span style={{ fontSize: 11, background: 'rgba(56,189,248,0.1)', color: 'var(--neon-blue)', padding: '2px 8px', borderRadius: 12, fontWeight: 700 }}>
+                    {regressionData ? `R² = ${regressionData.r_squared}` : 'FastAPI'}
+                  </span>
+                </div>
                 <div className="pred-field">
                   <label>Surface (m²)</label>
                   <input type="number" value={predSurf} onChange={e => setPredSurf(Number(e.target.value))} />
@@ -788,11 +891,11 @@ export default function Dashboard({ forcedTab }) {
                 <div className="pred-field">
                   <label>Quartier</label>
                   <select value={predQ} onChange={e => setPredQ(e.target.value)}>
-                    {Object.keys(QUARTIER_COEF).map(q => <option key={q} value={q}>{q}</option>)}
+                    {currentQuartiers.map(q => <option key={q.nom} value={q.nom}>{q.nom}</option>)}
                   </select>
                 </div>
                 <div className="pred-field">
-                  <label>Type</label>
+                  <label>Type de bien</label>
                   <select value={predType} onChange={e => setPredType(e.target.value)}>
                     <option value={0}>Appartement</option>
                     <option value={28600}>Maison (+28 600€)</option>
@@ -802,14 +905,21 @@ export default function Dashboard({ forcedTab }) {
                   <label>Étage</label>
                   <input type="number" value={predEtage} min={0} max={20} onChange={e => setPredEtage(Number(e.target.value))} />
                 </div>
-                <button className="pred-btn" onClick={doPrediction}>[ CALCULER ]</button>
+                <button className="pred-btn" onClick={doPrediction} disabled={predLoading}>
+                  {predLoading ? '[ CALCUL MACHINE LEARNING... ]' : '[ CALCULER VALEUR OLS ]'}
+                </button>
                 {predResult && (
                   <div className="pred-result">
-                    <div className="pred-result-label">PRIX ESTIMÉ CIBLE</div>
+                    <div className="pred-result-label">PRIX ESTIMÉ CIBLE (OLS MACHINE LEARNING)</div>
                     <div className="pred-result-val">{fmtPrix(Math.round(predResult.val))}</div>
                     <div className="pred-result-range">
-                      [{fmtPrix(Math.round(predResult.min))} — {fmtPrix(Math.round(predResult.max))}]
+                      Fourchette : [{fmtPrix(Math.round(predResult.min))} — {fmtPrix(Math.round(predResult.max))}]
                     </div>
+                    {predResult.r_squared !== undefined && (
+                      <div style={{ fontSize: 11, color: '#64748b', marginTop: 6, fontStyle: 'italic' }}>
+                        Modèle statistique calibré sur DVF Toulon (R² = {predResult.r_squared})
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

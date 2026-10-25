@@ -32,8 +32,9 @@ export default function AnnonceCard({ annonce }) {
         >
           ♥
         </button>
-        <div className={`annonce-score-badge score-${color}`}>
-          <span className="badge-num">{score}</span>
+        <div className={`annonce-score-badge ${score >= 75 ? 'badge-golden' : `score-${color}`}`}>
+          <span className="badge-fire">{score >= 75 ? '👑' : '🔥'}</span>
+          <span className="badge-num">{score}% {score >= 75 ? 'Match Or' : 'Match'}</span>
         </div>
       </div>
 

@@ -3,14 +3,50 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import Navbar from '../components/Navbar';
 import Dashboard from '../components/Dashboard';
 import CoupsDeCoeur from '../components/CoupsDeCoeur';
+import TinderMatch from '../components/TinderMatch';
 import { useApp, computeScore } from '../context/AppContext';
 import './Accueil.css';
 
 /* ── Mapbox Token (immo-app-v3/.env.local, non versionné) ── */
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+const envToken = import.meta.env.VITE_MAPBOX_TOKEN;
+const hasValidMapboxToken = Boolean(
+  envToken &&
+  envToken.startsWith('pk.') &&
+  !envToken.includes('votre_token')
+);
+if (hasValidMapboxToken) {
+  mapboxgl.accessToken = envToken;
+}
+
+const CARTO_VOYAGER_STYLE = {
+  version: 8,
+  sources: {
+    'carto-voyager': {
+      type: 'raster',
+      tiles: [
+        'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
+        'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
+        'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
+      ],
+      tileSize: 256,
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+    },
+  },
+  layers: [
+    {
+      id: 'carto-voyager-layer',
+      type: 'raster',
+      source: 'carto-voyager',
+      minzoom: 0,
+      maxzoom: 19,
+    },
+  ],
+};
 
 /* ── Quartier coords [lng, lat] ── */
 const QUARTIER_COORDS = {
@@ -37,9 +73,12 @@ const QUARTIER_COORDS = {
   'Font Pré':          [5.9400, 43.1350],
   'Haute-ville':       [5.9280, 43.1300],
   'Jonquet - Guynemer':[5.9350, 43.1450],
+  'La Chapelle - Saint-André': [5.9480, 43.1260],
   'La Loubière':       [5.9280, 43.1150],
   'La Palasse':        [5.9180, 43.1150],
   'La Serinette - La Barre': [5.9200, 43.1180],
+  'Le Cap Brun - Le Petit Bois': [5.9650, 43.1090],
+  'Le Fort Rouge':     [5.9260, 43.1420],
   'Le Mourillon - La Mitre - Fort Lamalgue': [5.9370, 43.1186],
   'Le Port':           [5.9280, 43.1180],
   'Les Lices':         [5.9280, 43.1270],
@@ -50,12 +89,29 @@ const QUARTIER_COORDS = {
   'Pont de Bois':      [5.9350, 43.1150],
   'Pont de Suve':      [5.9400, 43.1200],
   'Porte d\'Italie':   [5.9250, 43.1100],
+  'Proche de la Serinette et du quartier d\'Aguillon': [5.9530, 43.1170],
   'Rodeilhac':         [5.9180, 43.1300],
   'Sainte-Anne':       [5.9350, 43.1250],
+  'Toulon':            [5.9310, 43.1250],
+  'Toulon Ouest':      [5.9050, 43.1320],
   'Ubac - Dardennes - Barbasse - Mont Faron': [5.9350, 43.1400],
   'Valbertrand':       [5.9200, 43.1100],
   'Valbourdin':        [5.9150, 43.1100],
 };
+
+function getQuartierCoords(rawName) {
+  if (!rawName) return [5.9280, 43.1242];
+  if (QUARTIER_COORDS[rawName]) return QUARTIER_COORDS[rawName];
+  const clean = rawName.replace(/^Toulon\s*\((.*?)\)$/i, '$1').trim();
+  if (QUARTIER_COORDS[clean]) return QUARTIER_COORDS[clean];
+  const lower = clean.toLowerCase();
+  for (const [k, v] of Object.entries(QUARTIER_COORDS)) {
+    if (k.toLowerCase() === lower || lower.includes(k.toLowerCase()) || k.toLowerCase().includes(lower)) {
+      return v;
+    }
+  }
+  return [5.9280, 43.1242];
+}
 
 /* ── Quartier stats (fallback values for all quartiers) ── */
 const QUARTIER_STATS = {
@@ -114,42 +170,49 @@ function FullMap({ annonces, onSelectAnnonce }) {
 
   useEffect(() => {
     if (mapRef.current) return;
-    console.log('Initializing Mapbox map with token:', mapboxgl.accessToken?.slice(0, 20) + '...');
-    const map = new mapboxgl.Map({
-      container: containerRef.current,
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: [5.9300, 43.1250],
-      zoom: 12.2,
-      minZoom: 11.5,
-      maxBounds: [
-        [5.820, 43.080], // South West
-        [6.030, 43.160]  // North East
-      ],
-      pitch: 0,
-      bearing: 0,
-      attributionControl: false,
-    });
-    map.on('error', (e) => console.error('Mapbox error:', e));
-    map.on('load', () => console.log('Mapbox loaded successfully'));
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right');
+    const MapClass = hasValidMapboxToken ? mapboxgl : maplibregl;
+    const style = hasValidMapboxToken ? 'mapbox://styles/mapbox/light-v11' : CARTO_VOYAGER_STYLE;
+
+    let map;
+    try {
+      map = new MapClass.Map({
+        container: containerRef.current,
+        style: style,
+        center: [5.9300, 43.1250],
+        zoom: 12.2,
+        minZoom: 11.5,
+        maxBounds: [
+          [5.820, 43.080], // South West
+          [6.030, 43.160]  // North East
+        ],
+        pitch: 0,
+        bearing: 0,
+        attributionControl: false,
+      });
+    } catch (err) {
+      console.warn('Map initialization error:', err);
+      return;
+    }
+
+    map.on('error', (e) => console.error('Map error:', e));
+    map.addControl(new MapClass.NavigationControl({ showCompass: false }), 'bottom-right');
     mapRef.current = map;
 
     map.on('load', async () => {
       // 1. LISIBILITÉ DES NOMS
-      const style = map.getStyle();
-      if (!style || !style.layers) {
-        console.warn('Mapbox style or layers not fully loaded');
-        // We continue because we still want to add the GEOJSON sources!
-      }
-
-      const layers = style?.layers || [];
+      const styleObj = map.getStyle();
+      const layers = styleObj?.layers || [];
       let firstSymbolId;
       for (let i = 0; i < layers.length; i++) {
         if (layers[i].type === 'symbol' && !firstSymbolId) { firstSymbolId = layers[i].id; }
         if (layers[i].type === 'symbol' && layers[i].layout && layers[i].layout['text-field']) {
-          map.setPaintProperty(layers[i].id, 'text-color', '#111111');
-          map.setPaintProperty(layers[i].id, 'text-halo-color', '#ffffff');
-          map.setPaintProperty(layers[i].id, 'text-halo-width', 2);
+          try {
+            map.setPaintProperty(layers[i].id, 'text-color', '#111111');
+            map.setPaintProperty(layers[i].id, 'text-halo-color', '#ffffff');
+            map.setPaintProperty(layers[i].id, 'text-halo-width', 2);
+          } catch (e) {
+            // pass
+          }
         }
       }
 
@@ -183,16 +246,18 @@ function FullMap({ annonces, onSelectAnnonce }) {
           8000, '#9a3412'  // Orange sombre
         ];
 
+        const layerBefore = hasValidMapboxToken ? firstSymbolId : undefined;
+
         // Add Layers
         map.addLayer({
           'id': 'iris-fills', 'type': 'fill', 'source': 'iris',
-          'paint': { 'fill-color': priceColorScale, 'fill-opacity': 0.85 }
-        }, firstSymbolId);
+          'paint': { 'fill-color': priceColorScale, 'fill-opacity': hasValidMapboxToken ? 0.85 : 0.45 }
+        }, layerBefore);
 
         map.addLayer({
           'id': 'iris-borders', 'type': 'line', 'source': 'iris',
           'paint': { 'line-color': '#ffffff', 'line-width': 1 }
-        }, firstSymbolId);
+        }, layerBefore);
 
         map.addLayer({
           'id': 'iris-borders-hover', 'type': 'line', 'source': 'iris',
@@ -200,12 +265,12 @@ function FullMap({ annonces, onSelectAnnonce }) {
             'line-color': '#000000',
             'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 3, 0]
           }
-        }, firstSymbolId);
+        }, layerBefore);
 
         map.addLayer({
           'id': 'city-outline', 'type': 'line', 'source': 'outline',
-          'paint': { 'line-color': '#000000', 'line-width': 4 }
-        }, firstSymbolId);
+          'paint': { 'line-color': '#000000', 'line-width': 3 }
+        }, layerBefore);
 
         let hoveredStateId = null;
         map.on('mousemove', 'iris-fills', (e) => {
@@ -232,6 +297,7 @@ function FullMap({ annonces, onSelectAnnonce }) {
 
   useEffect(() => {
     if (!mapRef.current) return;
+    const MapClass = hasValidMapboxToken ? mapboxgl : maplibregl;
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
 
@@ -244,13 +310,12 @@ function FullMap({ annonces, onSelectAnnonce }) {
 
       try {
         if (!mapRef.current) return;
-        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+        const marker = new MapClass.Marker({ element: el, anchor: 'center' })
           .setLngLat([a.lng, a.lat])
           .addTo(mapRef.current);
         markersRef.current.push(marker);
       } catch (err) {
-        // Ignorer silencieusement l'erreur asynchrone générée par le Hot Module Reloading (HMR) de React.
-        // MapboxJS perd `appendChild` si le composant a été démonté avant l'injection des marqueurs.
+        // pass
       }
     });
   }, [annonces, onSelectAnnonce]);
@@ -263,15 +328,29 @@ function FullMap({ annonces, onSelectAnnonce }) {
 }
 
 /* ═══════ MAIN COMPONENT ═══════ */
-export default function Accueil() {
-  const { annonces, profil } = useApp();
+export default function Accueil({ initialTab }) {
+  const { annonces, profil, marketDashboard, marketStats } = useApp();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   console.log('🚀 Accueil component loaded. Annonces:', annonces?.length || 0, 'Profil:', profil);
 
-  const [searchParams] = useSearchParams();
-  const [tab, setTab] = useState(searchParams.get('tab') || 'carte');
+  const [tab, setTab] = useState(() => {
+    return searchParams.get('tab') || initialTab || 'carte';
+  });
   const [selected, setSelected] = useState(null);
+
+  useEffect(() => {
+    const qTab = searchParams.get('tab');
+    if (qTab && qTab !== tab) {
+      setTab(qTab);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (newTab) => {
+    setTab(newTab);
+    setSearchParams({ tab: newTab });
+  };
 
   const scored = useMemo(
     () => annonces.map(a => ({ ...a, score: computeScore(a, profil) })).sort((a, b) => b.score - a.score),
@@ -279,58 +358,81 @@ export default function Accueil() {
   );
 
   const withCoords = useMemo(() => scored.map(a => {
-    const base = QUARTIER_COORDS[a.quartier] || [5.928, 43.124];
-    return { ...a, lng: base[0] + (Math.random() - 0.5) * 0.008, lat: base[1] + (Math.random() - 0.5) * 0.006 };
+    const base = getQuartierCoords(a.quartier);
+    return { ...a, lng: base[0] + (Math.random() - 0.5) * 0.006, lat: base[1] + (Math.random() - 0.5) * 0.005 };
   }), [scored]);
 
   const handleSelect = useCallback((a) => setSelected(a), []);
 
+  const backendQData = useMemo(() => {
+    if (!marketDashboard?.QUARTIERS) return null;
+    const map = new Map();
+    marketDashboard.QUARTIERS.forEach(q => {
+      map.set(q.nom.toLowerCase(), q);
+    });
+    return map;
+  }, [marketDashboard]);
+
   /* Dynamic List computations */
   const listStats = useMemo(() => {
+    if (marketStats?.avg_price_m2) {
+      return {
+        prixM2: marketStats.avg_price_m2,
+        evol12m: 3.8,
+        delaiMois: 3.1,
+        rendement: 4.5
+      };
+    }
     if (!withCoords.length) return { prixM2: 0, evol12m: 0, delaiMois: 0, rendement: 0 };
-    const avgPrix = withCoords.reduce((acc, a) => acc + a.prixM2, 0) / withCoords.length;
+    const avgPrix = withCoords.reduce((acc, a) => acc + (a.prixM2 || 0), 0) / withCoords.length;
     return {
       prixM2: Math.round(avgPrix),
-      evol12m: 4.2, // Stats simulées pour la moyenne ville
+      evol12m: 4.2,
       delaiMois: 3.1,
       rendement: 4.5
     };
-  }, [withCoords]);
+  }, [withCoords, marketStats]);
 
   /* Quartier of selected annonce or default to Search Scope */
   const qNameSafe = selected?.quartier ? selected.quartier.split(',')[0].trim() : null;
   const activeQ = qNameSafe || 'Recherche Active';
-  const qStats = qNameSafe && QUARTIER_STATS[qNameSafe] ? QUARTIER_STATS[qNameSafe] : listStats;
+  const bData = qNameSafe ? backendQData?.get(qNameSafe.toLowerCase()) : null;
+  const qStats = bData ? {
+    prixM2: bData.moy,
+    evol12m: bData.evol,
+    delaiMois: 3.1,
+    volume: bData.vol,
+    rendement: 4.5,
+  } : (qNameSafe && QUARTIER_STATS[qNameSafe] ? QUARTIER_STATS[qNameSafe] : listStats);
 
-  /* Dynamic trend graph computations (12 months span from qStats) */
+  /* Dynamic trend graph computations */
   const trendData = useMemo(() => {
+    if (marketDashboard?.PRIX_MENSUEL?.length) {
+      const recent = marketDashboard.PRIX_MENSUEL.slice(-6);
+      return recent.map(p => ({
+        month: p.mois.split(' ')[0],
+        val: p.prix,
+      }));
+    }
     const currentPrice = qStats.prixM2 || 0;
-    const evol = qStats.evol12m || 0; // percentage
+    const evol = qStats.evol12m || 0;
     const pastPrice = currentPrice / (1 + (evol / 100));
-    
-    // Deterministic jitter based on price to make the graph look alive but stable
-    const p1 = pastPrice;
-    const p2 = pastPrice + (currentPrice - pastPrice) * 0.2 + (currentPrice % 40);
-    const p3 = pastPrice + (currentPrice - pastPrice) * 0.4 - (currentPrice % 30);
-    const p4 = pastPrice + (currentPrice - pastPrice) * 0.6 + (currentPrice % 50);
-    const p5 = pastPrice + (currentPrice - pastPrice) * 0.8 - (currentPrice % 20);
-    const p6 = currentPrice;
 
     return [
-      { month: 'Jan', val: p1 },
-      { month: 'Mar', val: p2 },
-      { month: 'Mai', val: p3 },
-      { month: 'Jul', val: p4 },
-      { month: 'Sep', val: p5 },
-      { month: 'Nov', val: p6 },
+      { month: 'Jan', val: Math.round(pastPrice) },
+      { month: 'Mar', val: Math.round(pastPrice + (currentPrice - pastPrice) * 0.2) },
+      { month: 'Mai', val: Math.round(pastPrice + (currentPrice - pastPrice) * 0.4) },
+      { month: 'Jul', val: Math.round(pastPrice + (currentPrice - pastPrice) * 0.6) },
+      { month: 'Sep', val: Math.round(pastPrice + (currentPrice - pastPrice) * 0.8) },
+      { month: 'Nov', val: Math.round(currentPrice) },
     ];
-  }, [qStats.prixM2, qStats.evol12m]);
+  }, [qStats.prixM2, qStats.evol12m, marketDashboard]);
 
-  /* Undervaluation */
+  /* Undervaluation computed against backend district averages */
   const getUnderval = (a) => {
-    const qs = QUARTIER_STATS[a.quartier];
-    if (!qs || !a.surface) return 0;
-    return Math.round(((qs.prixM2 * a.surface - a.prix) / (qs.prixM2 * a.surface)) * 100);
+    const qAvg = backendQData?.get(a.quartier?.toLowerCase())?.moy || QUARTIER_STATS[a.quartier]?.prixM2;
+    if (!qAvg || !a.prixM2) return 0;
+    return Math.round(((qAvg - a.prixM2) / qAvg) * 100);
   };
 
   return (
@@ -339,13 +441,30 @@ export default function Accueil() {
 
       {/* ── Tab bar (floating) ── */}
       <div className="tab-bar">
-        <button className={`tab-btn ${tab === 'analyses' ? 'active' : ''}`} onClick={() => setTab('analyses')}>Analyses</button>
-        <button className={`tab-btn ${tab === 'opportunites' ? 'active' : ''}`} onClick={() => setTab('opportunites')}>Opportunités et k-NN</button>
-        <button className={`tab-btn ${tab === 'carte' ? 'active' : ''}`} onClick={() => setTab('carte')}>Carte</button>
-        <button className={`tab-btn ${tab === 'favoris' ? 'active' : ''}`} onClick={() => setTab('favoris')}>❤ Coups de cœur</button>
+        <button className={`tab-btn tab-tinder ${tab === 'tinder' ? 'active' : ''}`} onClick={() => handleTabChange('tinder')}>
+          🔥 Tinder Match
+        </button>
+        <button className={`tab-btn ${tab === 'carte' ? 'active' : ''}`} onClick={() => handleTabChange('carte')}>
+          🗺️ Carte
+        </button>
+        <button className={`tab-btn ${tab === 'analyses' ? 'active' : ''}`} onClick={() => handleTabChange('analyses')}>
+          📊 Analyses
+        </button>
+        <button className={`tab-btn ${tab === 'opportunites' ? 'active' : ''}`} onClick={() => handleTabChange('opportunites')}>
+          🎯 Opportunités et k-NN
+        </button>
+        <button className={`tab-btn ${tab === 'favoris' ? 'active' : ''}`} onClick={() => handleTabChange('favoris')}>
+          ❤ Coups de cœur
+        </button>
       </div>
 
-      {/* ═══ COUPS DE CŒUR TAB ═══ */}
+      {/* ═══ TINDER MATCH TAB ═══ */}
+      {tab === 'tinder' && (
+        <div className="tinder-tab-wrapper">
+          <TinderMatch />
+        </div>
+      )}
+
       {tab === 'favoris' && (
         <div className="analyse-wrapper">
           <CoupsDeCoeur />
@@ -416,7 +535,9 @@ export default function Accueil() {
 
               <div className="or-price-row">
                 <div className="or-price">{selected.prix.toLocaleString('fr-FR')} €</div>
-                <div className="or-score">{(selected.score / 100 * 5).toFixed(2)}/100</div>
+                <div className="or-score" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(255, 87, 34, 0.12)', color: 'var(--neon-orange)', padding: '4px 10px', borderRadius: '12px', fontWeight: 800 }}>
+                  🔥 {Math.round(selected.score)}% Match IA
+                </div>
               </div>
 
               {(() => {
@@ -476,8 +597,13 @@ export default function Accueil() {
                       <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-color)' }}>{a.prix.toLocaleString('fr-FR')} €</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '4px 0' }}>{a.surface} m² · {a.type.split(' ')[0]}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{a.quartier.split(',')[0]}</div>
-                      <div style={{ marginTop: 'auto', fontSize: '0.75rem', fontWeight: 700, color: 'var(--neon-orange)' }}>
-                        ★ {(a.score / 100 * 5).toFixed(1)} / 5
+                      <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--neon-orange)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          🔥 {Math.round(a.score)}% Match IA
+                        </span>
+                        <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                          {a.etage || 'RDC'}
+                        </span>
                       </div>
                     </div>
                   </div>

@@ -8,10 +8,10 @@ const TYPES_BIEN = ['Appartement', 'Maison'];
 const ACHAT_LOCATION = ['Achat', 'Location', 'Achat / Location'];
 
 const ENVIRONNEMENTS = [
-  { label: 'Mer',      emoji: '🌊', color: '#0ea5e9', bg: '#e0f2fe' },
-  { label: 'Montagne', emoji: '⛰️',  color: '#78716c', bg: '#f5f5f4' },
-  { label: 'Campagne', emoji: '🌿', color: '#22c55e', bg: '#dcfce7' },
-  { label: 'Ville',    emoji: '🏙️', color: '#6366f1', bg: '#eef2ff' },
+  { label: 'Mer', color: '#0ea5e9', bg: '#e0f2fe' },
+  { label: 'Montagne', color: '#78716c', bg: '#f5f5f4' },
+  { label: 'Campagne', color: '#22c55e', bg: '#dcfce7' },
+  { label: 'Ville', color: '#6366f1', bg: '#eef2ff' },
 ];
 
 export default function Profil() {
@@ -38,28 +38,53 @@ export default function Profil() {
   const handleSave = () => {
     setProfil(form);
     setSaved(true);
-    setTimeout(() => navigate('/accueil'), 900);
+    setTimeout(() => navigate('/recherche'), 900);
   };
+
+  const selectedQuartiers = form.quartiers?.length || 0;
+  const formatEuro = (value) => new Intl.NumberFormat('fr-FR', {
+    style: 'currency', currency: 'EUR', maximumFractionDigits: 0,
+  }).format(value || 0);
 
   return (
     <div className="profil-wrapper">
       <Navbar />
       <div className="profil-content">
-        <div className="profil-card">
+        <div className="profil-intro">
+          <div>
+            <span className="profil-eyebrow">Préférences de recherche</span>
+            <h1>Bonjour {user?.nom || user?.login || 'Investisseur'}.</h1>
+            <p>Affinez votre projet : vos recommandations se mettent à jour selon ces critères.</p>
+          </div>
+          <button className={`save-btn ${saved ? 'saved' : ''}`} onClick={handleSave}>
+            <span>{saved ? '✓' : '↗'}</span> {saved ? 'Profil sauvegardé' : 'Enregistrer les préférences'}
+          </button>
+        </div>
 
-          {/* Header */}
+        <div className="profil-layout">
+          <aside className="profil-summary">
+            <div className="summary-avatar">{(user?.nom || user?.login || 'I').charAt(0).toUpperCase()}</div>
+            <p className="summary-label">Votre recherche</p>
+            <h2>{form.typeBien || 'Bien immobilier'}</h2>
+            <div className="summary-list">
+              <div><span>Budget</span><strong>{formatEuro(form.prixMax)}</strong></div>
+              <div><span>Secteurs</span><strong>{selectedQuartiers ? `${selectedQuartiers} sélectionné${selectedQuartiers > 1 ? 's' : ''}` : 'Toute la France'}</strong></div>
+              <div><span>Projet</span><strong>{form.achatLocation}</strong></div>
+            </div>
+            <div className="summary-tip">Les biens les plus compatibles seront prioritaires dans vos correspondances.</div>
+          </aside>
+
+          <div className="profil-card">
           <div className="profil-header">
-            <h2 className="profil-title">Profil · {user?.login}</h2>
-            <button className={`save-btn ${saved ? 'saved' : ''}`} onClick={handleSave}>
-              {saved ? '✓ Sauvegardé' : 'Sauvegarder'}
-            </button>
+            <div><h2 className="profil-title">Les essentiels</h2><p>Définissez le cadre de votre prochain achat.</p></div>
           </div>
 
           {/* Grille critères */}
           <div className="profil-grid">
             <div className="profil-field-box">
-              <span className="box-label">Nb de pièces</span>
+              <label className="box-label" htmlFor="pieces">Nombre de pièces</label>
               <input
+                id="pieces"
                 type="number"
                 className="box-input"
                 value={form.pieces}
@@ -69,8 +94,9 @@ export default function Profil() {
             </div>
 
             <div className="profil-field-box">
-              <span className="box-label">Budget max (€)</span>
+              <label className="box-label" htmlFor="budget">Budget maximum</label>
               <input
+                id="budget"
                 type="number"
                 className="box-input"
                 value={form.prixMax}
@@ -80,8 +106,9 @@ export default function Profil() {
             </div>
 
             <div className="profil-field-box">
-              <span className="box-label">Mensualité max (€)</span>
+              <label className="box-label" htmlFor="monthly">Mensualité maximum</label>
               <input
+                id="monthly"
                 type="number"
                 className="box-input"
                 value={form.mensualiteMax}
@@ -93,7 +120,7 @@ export default function Profil() {
 
           {/* Quartier — multi-sélection */}
           <div className="profil-section">
-            <span className="field-label">Quartier(s) recherché(s)</span>
+            <div className="section-heading"><span className="field-label">Ville(s) ou secteur(s) recherché(s)</span><span className="selection-count">{selectedQuartiers ? `${selectedQuartiers} sélectionné${selectedQuartiers > 1 ? 's' : ''}` : 'Toute la France'}</span></div>
             <div className="quartier-choices">
               <button
                 className={`tag-btn ${!form.quartiers?.length ? 'active-orange' : ''}`}
@@ -117,15 +144,13 @@ export default function Profil() {
               })}
             </div>
             {!!form.quartiers?.length && (
-              <p className="quartier-selection-info">
-                {form.quartiers.length} quartier{form.quartiers.length > 1 ? 's' : ''} sélectionné{form.quartiers.length > 1 ? 's' : ''}
-              </p>
+              <p className="quartier-selection-info">Vous recevrez des recommandations ciblées pour ces secteurs.</p>
             )}
           </div>
 
           {/* Type de bien */}
           <div className="profil-inline-field">
-            <span className="inline-label">Type de bien</span>
+            <span className="inline-label">Type de bien <small>Ce que vous souhaitez trouver</small></span>
             <div className="tag-choices">
               {TYPES_BIEN.map(t => (
                 <button
@@ -139,7 +164,7 @@ export default function Profil() {
 
           {/* Achat / Location */}
           <div className="profil-inline-field">
-            <span className="inline-label">Achat / Location</span>
+            <span className="inline-label">Votre projet <small>Achat ou location</small></span>
             <div className="tag-choices">
               {ACHAT_LOCATION.map(t => (
                 <button
@@ -153,7 +178,7 @@ export default function Profil() {
 
           {/* Environnement */}
           <div className="profil-section">
-            <span className="field-label">Environnement</span>
+            <div className="section-heading"><span className="field-label">Cadre de vie</span><span className="selection-count">Plusieurs choix possibles</span></div>
             <div className="env-grid">
               {ENVIRONNEMENTS.map(env => {
                 const active = form.environnement.includes(env.label);
@@ -168,14 +193,15 @@ export default function Profil() {
                     }}
                     onClick={() => toggleEnv(env.label)}
                   >
-                    <span className="env-emoji">{env.emoji}</span>
+                    <span className="env-emoji" aria-hidden="true" />
                     <span>{env.label}</span>
                   </button>
                 );
               })}
             </div>
           </div>
-
+          <div className="profil-footer"><span>Vos préférences sont enregistrées localement.</span><button className="text-save-btn" onClick={handleSave}>Sauvegarder et voir les résultats →</button></div>
+        </div>
         </div>
       </div>
     </div>
