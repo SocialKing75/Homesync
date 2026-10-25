@@ -72,10 +72,13 @@ def masquer_donnees_perso(message: str) -> tuple[str, bool]:
     return masque, masque != message
 
 
-def controler(message: str, nb_messages: int) -> dict:
-    """Résultat : {"bloque": réponse | None, "message": texte nettoyé, "avertissements": [...]}"""
+def controler(message: str, nb_messages: int, profil: str = "perso", lang: str = "fr") -> dict:
+    """Résultat : {"bloque": réponse | None, "message": texte nettoyé, "avertissements": [...]}
+    profil="holiday" : garde-fous du parcours séjour, réponses dans la langue `lang`."""
+    if profil == "holiday":
+        return _controler_sejour(message, nb_messages, lang)
     if nb_messages >= MAX_MESSAGES_SESSION:
-        return {"bloque": "Cette conversation est terminée. Créez un compte ou lancez une nouvelle recherche pour continuer.",
+        return {"bloque": "Cette conversation est terminée. Lancez une nouvelle recherche pour continuer.",
                 "message": "", "avertissements": []}
 
     t = _norm(message)
@@ -96,3 +99,62 @@ def controler(message: str, nb_messages: int) -> dict:
     if CONSEIL.search(t):
         avertissements.append(AVERTISSEMENT_CONSEIL)
     return {"bloque": None, "message": nettoye, "avertissements": avertissements}
+
+
+# --- Parcours séjour (profil « Vacancier ») : mêmes contrôles, en anglais et en français ---
+# Pas d'avertissement « conseil financier » : il ne concerne pas une location de vacances
+# (et « prêt » y veut souvent dire « ready »).
+
+INSULTES_EN = re.compile(r"\b(fuck\w*|shit\w*|bitch\w*|asshole|bastard|cunt|dickhead|moron|stupid bot|retard\w*|"
+                         r"nigg\w*|fag\w*|whore|slut)\b")
+
+INJECTION_EN = re.compile(
+    r"(ignore (all |any |the |your )?(previous |prior |above |earlier )?(instructions|rules|prompts?)|"
+    r"forget (all |your |the )?(instructions|rules|prompts?)|disregard (all |your |the )?(instructions|rules)|"
+    r"you are now|pretend (to be|you are)|act as (a|an|if)|reveal (your|the) (system )?(prompt|instructions)|"
+    r"developer mode|print (your|the) (system )?prompt)"
+)
+
+HORS_SUJET_EN = re.compile(
+    r"\b(recipe|cooking|weather forecast|horoscope|joke|football|soccer|politics|election|python code|javascript|"
+    r"homework|essay|translate|poem|song lyrics|movie|netflix|video game|bitcoin|crypto)\b"
+)
+
+SEJOUR = re.compile(
+    r"\b(rent\w*|stay\w*|holiday\w*|vacation\w*|trip|travel\w*|night\w*|guests?|people|flat|apartment|house|villa|"
+    r"studio|room\w*|bed\w*|airbnb|accommodation|sejour\w*|vacances|voyage\w*|nuit\w*|personnes?|logement\w*|"
+    r"location\w*|appart\w*|maison|chambre\w*|budget|prix|price|week-?end|paris|lyon|bordeaux|basque|biarritz|"
+    r"bayonne|anglet|plage|beach|mer|sea)\b"
+)
+
+MESSAGES_SEJOUR = {
+    "fr": {
+        "fin": "Cette conversation est terminée. Lancez une nouvelle recherche pour continuer.",
+        "insulte": "Restons courtois, s'il vous plaît. Je suis là pour vous aider à trouver une location de vacances.",
+        "injection": "Je ne peux pas faire ça. Mon rôle est uniquement de vous aider à trouver une location de vacances.",
+        "hors_sujet": "Je suis spécialisé dans les locations de vacances. Dites-moi plutôt où vous souhaitez séjourner !",
+        "donnees": "Pour votre sécurité, je n'enregistre pas vos coordonnées : ne les partagez pas dans ce chat.",
+    },
+    "en": {
+        "fin": "This conversation has ended. Start a new search to continue.",
+        "insulte": "Let's keep it polite, please. I'm here to help you find a holiday rental.",
+        "injection": "I can't do that. I can only help you find holiday rentals.",
+        "hors_sujet": "I specialise in holiday rentals. Tell me where you'd like to stay!",
+        "donnees": "For your safety, I don't store contact details: please don't share them in this chat.",
+    },
+}
+
+
+def _controler_sejour(message: str, nb_messages: int, lang: str) -> dict:
+    textes = MESSAGES_SEJOUR["en" if lang == "en" else "fr"]
+    if nb_messages >= MAX_MESSAGES_SESSION:
+        return {"bloque": textes["fin"], "message": "", "avertissements": []}
+    t = _norm(message)
+    if INSULTES.search(t) or INSULTES_EN.search(t):
+        return {"bloque": textes["insulte"], "message": "", "avertissements": []}
+    if INJECTION.search(t) or INJECTION_EN.search(t):
+        return {"bloque": textes["injection"], "message": "", "avertissements": []}
+    if (HORS_SUJET.search(t) or HORS_SUJET_EN.search(t)) and not (IMMOBILIER.search(t) or SEJOUR.search(t)):
+        return {"bloque": textes["hors_sujet"], "message": "", "avertissements": []}
+    nettoye, masque = masquer_donnees_perso(message)
+    return {"bloque": None, "message": nettoye, "avertissements": [textes["donnees"]] if masque else []}

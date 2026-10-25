@@ -58,5 +58,5 @@ export default function ConnectedMap({ annonces, selected, onSelect }) {
     map.current.setPaintProperty('points', 'circle-color', ['case', ['==', ['get', 'id'], selected?.id_source || ''], '#2D4263', '#B87333']);
     if (typeof selected?.lat === 'number' && typeof selected?.lon === 'number') map.current.easeTo({ center: [selected.lon, selected.lat], duration: 0 });
   }, [selected, ready]);
-  return <div className="hs-map-wrap"><div ref={container} className="hs-map" aria-label="Carte des annonces retournées par Trouvelenom" />{error && <p className="hs-map-error" role="status">{error}</p>}<p className="hs-map-caption">Seules les annonces géolocalisées sont représentées. Le catalogue ne couvre pas nécessairement toute la France.</p></div>;
+  return <div className="hs-map-wrap"><div ref={container} className="hs-map" aria-label="Carte des annonces retournées par la recherche" />{error && <p className="hs-map-error" role="status">{error}</p>}<p className="hs-map-caption">Seules les annonces géolocalisées sont représentées. Le catalogue ne couvre pas nécessairement toute la France.</p></div>;
 }

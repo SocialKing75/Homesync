@@ -117,7 +117,7 @@ def test_plusieurs_villes(client, ):
 def test_resultats_filtres_et_apercu_sans_details(client):
     r = _dire(client, "Appartement T2 à Toulon budget 200k")
     res = r["resultats"]
-    assert r["require_account"] is True
+    assert r["require_account"] is False and "compte" not in r["reply"]  # résultats publics
     assert res["prix_max"] <= 200000
     assert all(set(item) == {"type", "ville", "quartier", "surface"} for item in res["items"])  # ni prix, ni lien, ni photo
 
@@ -137,9 +137,12 @@ def test_session_conservee_en_base(client, tmp_path):
     assert r["complete"] and r["slots"]["villes"] == ["Toulon"]
 
 
-def test_resultats_reserves_aux_comptes_avec_photos(client):
+def test_resultats_publics_avec_photos(client):
     r = _dire(client, "Maison à Toulon budget 500k")
-    assert client.get(f"/api/chat/resultats/{r['resultats']['search_id']}").status_code == 401
+    assert r["require_account"] is False and "Swipez-les" in r["reply"]
+    annonces = _resultats(client, r, {})  # sans compte
+    assert annonces and all(a["prix"] and a["url_source"] for a in annonces)
+    assert len(_resultats(client, r, {}, a_swiper=True)) == len(annonces)  # visiteur : rien à exclure
 
     annonces = _resultats(client, r, _connecte(client))
     assert annonces and all(a["type"].startswith("Maison") and a["prix"] <= 500000 for a in annonces)

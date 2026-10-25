@@ -14,7 +14,7 @@ from pathlib import Path
 
 import requests
 
-from backend.auth.mailer import envoyer_email
+from backend.auth.mailer import emails_actifs, envoyer_email
 
 ROOT = Path(__file__).resolve().parents[2]
 PROFILES_FILE = ROOT / "data" / "alertes.json"
@@ -84,6 +84,8 @@ def _html_alerte(biens: list[dict]) -> str:
 
 def notifier_email(email: str, biens: list[dict]) -> None:
     """Envoie un email HTML avec les nouveaux biens correspondants."""
+    if not emails_actifs():
+        return
     if not os.getenv("SMTP_USER") or not os.getenv("SMTP_PASSWORD"):
         raise RuntimeError("SMTP_USER / SMTP_PASSWORD non définis dans .env")
     envoyer_email(email, f"🏠 Alerte | {len(biens)} nouvelle(s) offre(s) à Toulon", _html_alerte(biens))

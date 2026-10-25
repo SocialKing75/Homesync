@@ -7,8 +7,8 @@
 # « peu importe » passe la question). Ensuite il filtre les annonces :
 # recherche sémantique ChromaDB sur tout ce que l'utilisateur a écrit, puis
 # critères stricts, puis assouplissement si rien ne correspond. Les annonces
-# trouvées sont enregistrées sous un search_id ; leur détail n'est servi
-# qu'aux comptes connectés. Chaque message passe d'abord par garde_fous.py.
+# trouvées sont enregistrées sous un search_id ; leur détail est servi à tous
+# par GET /api/chat/resultats/{id}. Chaque message passe d'abord par garde_fous.py.
 # =============================================================================
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ SKIP_RE = re.compile(r"\b(peu importe|pas important|indifferent|n'importe|aucune
 
 SUGGESTIONS_TYPE = ["Appartement", "Maison", "Peu importe"]
 SUGGESTIONS_BUDGET = ["200 000 €", "300 000 €", "450 000 €", "Peu importe"]
-SUGGESTIONS_RESULTATS = ["Affiner ma recherche"]  # création de compte : boutons de la carte d'aperçu
+SUGGESTIONS_RESULTATS = ["Affiner ma recherche"]
 SUGGESTIONS_AUCUN = ["Augmenter le budget", "Peu importe le nombre de pièces", "Peu importe le quartier"]
 
 
@@ -87,6 +87,18 @@ def _montant(nombre: str, suffixe: str) -> float:
     return valeur
 
 
+# « budget 800000 », « budget de 1 200 000 », « prix max 300 » (k sous-entendu) : montant sans unité
+BUDGET_SANS_UNITE = re.compile(
+    r"\b(?:budget|prix|max(?:imum)?|jusqu'?a|moins de|pas plus de)\s*(?:max(?:imum)?\s*)?"
+    r"(?:(?:de|d'environ|environ|a|:|=)\s*)?(\d{1,3}(?:[\s.]\d{3})+|\d+)(?![\d.,])"
+    r"(?!\s*(?:m\b|m2|m²|metres?|pieces?|chambres?|pers|%|ans?\b|km|min))")
+
+
+def _montant_sans_unite(nombre: str) -> float:
+    valeur = float(re.sub(r"[\s.]", "", nombre))
+    return valeur * 1000 if valeur < 5000 else valeur
+
+
 def extraire_villes(texte: str) -> list[str]:
     t = _norm(texte)
     return [ville for motif, ville in _ref()["motifs"] if motif.search(t)]
@@ -118,12 +130,14 @@ def extraire_criteres(texte: str, attendu: str | None = None, villes: list[str] 
         criteres["surface_min"] = float(surface.group(1))
 
     # « m » seul = mètres (« 65 m ») : le million doit être explicite (« 1,2 million », « 1 M€ »)
-    budget = re.search(r"(\d[\d\s .,]*\d|\d)\s*(k|millions?\b|m€|meur|keur|000\s*e|\s*(?:€|e\b|euros?))", t)
-    if budget:
-        valeur = _montant(budget.group(1), budget.group(2).strip())
-        if valeur >= 20_000:
-            criteres["budget_max"] = valeur
-    elif attendu == "budget":
+    budgets = [_montant(m.group(1), m.group(2).strip()) for m in re.finditer(r"(\d[\d\s .,]*\d|\d)\s*(k|millions?\b|m€|meur|keur|000\s*e|\s*(?:€|e\b|euros?))", t)]
+    valeur = next((v for v in budgets if v >= 20_000), None)  # « 2e étage, 300k » : 2 n'est pas un budget
+    sans_unite = BUDGET_SANS_UNITE.search(t)
+    if valeur:
+        criteres["budget_max"] = valeur
+    elif sans_unite and _montant_sans_unite(sans_unite.group(1)) >= 20_000:
+        criteres["budget_max"] = _montant_sans_unite(sans_unite.group(1))  # « budget 800000 », « budget de 300 »
+    elif not budgets and attendu == "budget":
         nombre = re.fullmatch(r"\s*(\d[\d\s.]*)\s*", t)
         if nombre:
             valeur = float(re.sub(r"[\s.]", "", nombre.group(1)))
@@ -230,15 +244,24 @@ def enregistrer_recherche(session_id: str, c: dict, annonces: list[dict], texte:
     return search_id
 
 
-def charger_recherche(search_id: str, user_id: int, exclure: set[str] = frozenset(), gouts: str = "") -> dict | None:
+def charger_recherche(search_id: str, user_id: int | None, exclure: set[str] = frozenset(), gouts: str = "",
+                      lang: str | None = None) -> dict | None:
     """Résultats complets d'une recherche (hors `exclure`), classés par score de matching
-    (champ `match` de chaque annonce) ; rattache la recherche au compte qui la consulte."""
+    (champ `match` de chaque annonce) ; rattache la recherche au compte qui la consulte, s'il y en a un.
+    Recherche du parcours séjour (profil holiday) : locations de vacances, explications
+    du score dans la langue `lang` (par défaut celle de la conversation)."""
     with connect() as conn:
         row = conn.execute("SELECT * FROM chat_searches WHERE search_id = ?", (search_id,)).fetchone()
         if not row:
             return None
-        if row["user_id"] is None:
+        if row["user_id"] is None and user_id is not None:
             conn.execute("UPDATE chat_searches SET user_id = ? WHERE search_id = ?", (user_id, search_id))
+    criteres = json.loads(row["criteres"])
+    if criteres.get("profil") == "holiday":
+        from backend.vacances import catalogue  # import local : le catalogue dépend du chat (normalisation)
+        return {"search_id": search_id, "criteres": criteres, "source": {**catalogue.SOURCE,
+                "attribution": catalogue.attribution(lang or criteres.get("lang") or "fr")},
+                "annonces": catalogue.resultats(criteres, json.loads(row["annonce_ids"]), exclure, lang)}
     par_id = _annonces_par_id()
     annonces = [par_id[i] for i in json.loads(row["annonce_ids"]) if i in par_id and i not in exclure]
     criteres = json.loads(row["criteres"])
@@ -247,7 +270,7 @@ def charger_recherche(search_id: str, user_id: int, exclure: set[str] = frozense
 
 
 def _apercu(annonces: list[dict]) -> dict:
-    """Aperçu affiché avant création de compte : ni prix exacts, ni liens, ni photos."""
+    """Aperçu affiché dans la conversation (le détail complet : GET /api/chat/resultats/{id})."""
     prix = [a["prix"] for a in annonces if a.get("prix")]
     return {
         "count": len(annonces),
@@ -351,12 +374,9 @@ def _repondre(s: dict, session_id: str, message: str, exclure: set[str], connect
         f"J'ai trouvé {n} annonce{'s' if n > 1 else ''} qui correspond{'ent' if n > 1 else ''} à votre recherche "
         f"({resume_criteres(c)})"
         + (f" — {assouplissement}" if assouplissement else "")
-        + (". Swipez-les dès maintenant !" if connecte else
-           ". Créez votre compte gratuit pour les découvrir en photos, les liker et recevoir les nouvelles annonces.")
+        + ". Swipez-les dès maintenant !"
     )
-    reponse = _reponse(texte, c, [], SUGGESTIONS_RESULTATS, resultats={"search_id": search_id, **apercu}, complete=True)
-    reponse["require_account"] = not connecte
-    return reponse
+    return _reponse(texte, c, [], SUGGESTIONS_RESULTATS, resultats={"search_id": search_id, **apercu}, complete=True)
 
 
 def _reponse(reply: str, criteres: dict, missing: list[str], suggestions: list[str],
@@ -369,5 +389,5 @@ def _reponse(reply: str, criteres: dict, missing: list[str], suggestions: list[s
         "suggestions": suggestions,
         "choix": choix,
         "resultats": resultats,
-        "require_account": resultats is not None,
+        "require_account": False,  # résultats publics : aucun compte demandé
     }

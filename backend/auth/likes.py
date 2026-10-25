@@ -5,7 +5,8 @@
 # (re-liker change le type). Le front s'en sert pour la liste des favoris et
 # pour différencier les marqueurs sur la carte.
 #
-# annonce_id : id d'un bien de /api/properties, ou id_source d'une annonce RAG.
+# annonce_id : id d'un bien de /api/properties, id_source d'une annonce RAG, ou
+# id d'une location de vacances (« airbnb-… », catalogue backend/vacances).
 # =============================================================================
 
 from datetime import datetime, timezone
@@ -19,6 +20,7 @@ from backend.auth.db import connect
 from backend.auth.routes import get_current_user
 from backend.loaders.annonces_loader import ANNONCES_CSV, charger_annonces_csv
 from backend.services.property_service import PropertyService
+from backend.vacances import catalogue as vacances
 
 router = APIRouter(prefix="/api/likes", tags=["likes"])
 
@@ -51,17 +53,25 @@ def _index_annonces(_version: int) -> dict[str, dict]:
     return index
 
 
+def _annonce(annonce_id: str) -> Optional[dict]:
+    """Résumé d'une annonce likable : bien ou annonce d'achat, ou location de vacances
+    (données de l'annonce, prix par nuit : unite_prix = "nuit", source = "Inside Airbnb")."""
+    if annonce_id.startswith(vacances.PREFIXE_ID):
+        return vacances.resume_favori(annonce_id)
+    return _annonces().get(annonce_id)
+
+
 def _verifie(user, annonce_id: str) -> None:
     """Liker / masquer : compte vérifié et annonce connue."""
     if not user["email_verified"]:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Adresse email non vérifiée.")
-    if annonce_id not in _annonces():
+    if _annonce(annonce_id) is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Annonce introuvable.")
 
 
 def _format(row) -> dict:
     return {"annonce_id": row["annonce_id"], "type": row["type"], "cree_le": row["created_at"],
-            "annonce": _annonces().get(row["annonce_id"])}
+            "annonce": _annonce(row["annonce_id"])}
 
 
 @router.get("")
@@ -140,7 +150,7 @@ def disliked_ids(user_id: int) -> set[str]:
 def list_dislikes(user=Depends(get_current_user)) -> list[dict]:
     with connect() as conn:
         rows = conn.execute("SELECT * FROM dislikes WHERE user_id = ? ORDER BY created_at DESC", (user["id"],)).fetchall()
-    return [{"annonce_id": r["annonce_id"], "cree_le": r["created_at"], "annonce": _annonces().get(r["annonce_id"])}
+    return [{"annonce_id": r["annonce_id"], "cree_le": r["created_at"], "annonce": _annonce(r["annonce_id"])}
             for r in rows]
 
 

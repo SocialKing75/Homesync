@@ -189,6 +189,8 @@ def get_optional_user(authorization: Optional[str] = Header(None)):
 def register(data: RegisterIn) -> dict:
     email = _valider_email(data.email)
     valider_mot_de_passe(data.password)
+    if not mailer.emails_actifs():
+        return _register_sans_email(email, data)
     with connect() as conn:
         user = _user_par_email(conn, email)
         if user is None:
@@ -215,6 +217,30 @@ def register(data: RegisterIn) -> dict:
     return _avec_lien_dev({"message": MSG_INSCRIPTION}, token, "/verifier-email")
 
 
+def _register_sans_email(email: str, data: RegisterIn) -> dict:
+    """EMAILS=off : le compte est actif tout de suite (personne ne peut prouver posséder l'adresse).
+    Un compte jamais activé est repris par la nouvelle inscription, comme dans le parcours avec email."""
+    with connect() as conn:
+        user = _user_par_email(conn, email)
+        if user is None:
+            conn.execute(
+                "INSERT INTO users (email_hash, email_enc, nom_enc, password_hash, created_at, email_verified) VALUES (?, ?, ?, ?, ?, 1)",
+                (crypto.email_lookup_hash(email), crypto.encrypt(email), crypto.encrypt(data.nom),
+                 crypto.hash_password(data.password), _iso(_now())),
+            )
+        elif not user["email_verified"]:
+            conn.execute("UPDATE users SET password_hash = ?, nom_enc = ?, email_verified = 1 WHERE id = ?",
+                         (crypto.hash_password(data.password), crypto.encrypt(data.nom), user["id"]))
+        else:
+            crypto.verify_password(data.password, _DUMMY_HASH)
+    return {"message": "Compte créé. Vous pouvez vous connecter.", "compte_actif": True}
+
+
+def _emails_requis() -> None:
+    if not mailer.emails_actifs():
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Les emails sont désactivés sur ce site : cette action n'est pas disponible.")
+
+
 def _avec_lien_dev(reponse: dict, token: Optional[str], chemin: str) -> dict:
     """APP_ENV=dev sans SMTP : renvoie le lien de l'email pour tester sans boîte mail.
     Jamais en production (APP_ENV absent) : le lien prouve la possession de l'adresse."""
@@ -233,6 +259,7 @@ def verify_email(data: TokenIn) -> dict:
 
 @router.post("/resend-verification", status_code=status.HTTP_202_ACCEPTED)
 def resend_verification(data: EmailIn) -> dict:
+    _emails_requis()
     email = crypto.normalize_email(data.email)
     with connect() as conn:
         user = _user_par_email(conn, email)
@@ -322,6 +349,7 @@ def change_password(data: ChangePasswordIn, user=Depends(get_current_user)) -> d
 
 @router.post("/forgot-password", status_code=status.HTTP_202_ACCEPTED)
 def forgot_password(data: EmailIn) -> dict:
+    _emails_requis()
     email = crypto.normalize_email(data.email)
     with connect() as conn:
         user = _user_par_email(conn, email)

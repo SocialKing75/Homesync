@@ -20,8 +20,17 @@ def frontend_url(path: str) -> str:
     return os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/") + path
 
 
+def emails_actifs() -> bool:
+    """EMAILS=off coupe tous les parcours par email : comptes actifs dès l'inscription,
+    pas de mot de passe oublié, pas d'alerte par email (Slack reste possible)."""
+    return os.getenv("EMAILS", "on").strip().lower() not in ("off", "0", "false", "non")
+
+
 def envoyer_email(destinataire: str, sujet: str, html: str) -> None:
     """Envoi SMTP (partagé avec les alertes) ; lève l'erreur SMTP éventuelle."""
+    if not emails_actifs():
+        logger.info("Emails désactivés (EMAILS=off) — « %s » non envoyé.", sujet)
+        return
     user = os.getenv("SMTP_USER")
     password = os.getenv("SMTP_PASSWORD")
     if not user or not password:
