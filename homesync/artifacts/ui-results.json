@@ -1,0 +1,42 @@
+{
+  "national": {
+    "bounds": [
+      [
+        -6.427474401700749,
+        40.858022350535606
+      ],
+      [
+        10.827474401701267,
+        51.56593496007196
+      ]
+    ],
+    "clusters": 9
+  },
+  "scenarios": [
+    {
+      "name": "1 · À deux à Nantes",
+      "counts": [
+        4,
+        4,
+        1
+      ]
+    },
+    {
+      "name": "2 · Mobilité professionnelle",
+      "counts": [
+        6,
+        4,
+        0
+      ]
+    },
+    {
+      "name": "3 · Explorer Lyon",
+      "counts": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "errors": []
+}
