@@ -1,0 +1,90 @@
+/* Comparatif d'annonces : fenêtre par-dessus la page (au-dessus du panneau mobile), jusqu'à 3 colonnes.
+   Meilleure valeur : aplat clair + étoile, jamais de bordure colorée. */
+.ct-backdrop{position:fixed;inset:0;z-index:1600;display:flex;align-items:center;justify-content:center;padding:24px;background:#1e304e80;animation:ct-fade .18s ease-out}
+.ct{--ct-navy:#2D4263;--ct-muted:#5A6678;--ct-line:#2d42631a;position:relative;width:100%;max-width:920px;max-height:92dvh;display:flex;flex-direction:column;background:#fff;color:var(--ct-navy);border-radius:22px;box-shadow:0 24px 80px #18263d4d;line-height:1.4;text-align:left;outline:none;animation:ct-pop .2s ease-out}
+.ct-n1{max-width:560px}.ct-n2{max-width:780px}
+.ct *{box-sizing:border-box}
+.ct :focus-visible{outline:3px solid #9b5e29;outline-offset:2px}
+/* La fenêtre elle-même reçoit le focus à l'ouverture : pas de contour coloré autour du bloc arrondi. */
+.ct.ct:focus,.ct.ct:focus-visible{outline:none}
+.ct-sr{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.ct.ct button:hover:not(:disabled){transform:none;box-shadow:none}
+.ct .ct-close{position:absolute;z-index:3;top:14px;right:14px;width:40px;height:40px;margin:0;padding:0;display:grid;place-items:center;border:0;border-radius:50%;background:#f3f0ea;color:var(--ct-navy);cursor:pointer;transition:background-color .15s}
+.ct.ct .ct-close:hover:not(:disabled){background:#e9e4da}
+
+.ct-head{padding:24px 70px 14px 28px}
+.ct .ct-title{margin:0;font-size:24px;font-weight:700;line-height:1.2;color:var(--ct-navy)}
+.ct .ct-sub,.ct .ct-hint{margin:6px 0 0;font-size:14px;color:var(--ct-muted)}
+.ct-legend{display:inline-flex;align-items:center;gap:5px;margin-left:12px;white-space:nowrap}
+.ct .ct-hint{color:var(--ct-navy);font-weight:500}
+.ct .ct-empty{margin:0;padding:8px 28px 32px;font-size:15px;color:var(--ct-muted)}
+.ct-star{display:inline-flex;vertical-align:-2px;margin-left:6px;color:#6D28D9}
+.ct-legend .ct-star{margin-left:0}
+
+.ct-scroll{min-height:0;overflow:auto;padding:0 28px 26px;overscroll-behavior:contain}
+.ct-table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:15px}
+.ct-table th,.ct-table td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--ct-line)}
+.ct-table thead th{padding-bottom:14px;vertical-align:bottom}
+.ct-table .ct-label{width:128px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#5D6B80;background:#fff}
+.ct-table .ct-label small{display:block;font-size:11px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--ct-muted)}
+.ct-table td{font-weight:600;cursor:pointer;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.ct-table td small{display:block;font-size:13px;font-weight:500;color:var(--ct-muted)}
+.ct-strong{display:block}
+.ct-table td .ct-unit{display:inline;font-size:13px}
+/* Mention obligatoire des données Inside Airbnb (CC BY 4.0). */
+.ct .ct-credit{margin:0;padding:12px 28px 20px;border-top:1px solid var(--ct-line);font-size:11.5px;line-height:1.5;color:var(--ct-muted)}
+.ct .ct-credit a{color:var(--ct-navy);text-decoration:underline;text-underline-offset:2px}
+.ct-table .ct-hover{background:#faf7f0}
+.ct-table .ct-best{background:#F3EEFF}
+
+/* En-tête de colonne : photo + titre (ouvre l'annonce), puis « Retirer ». */
+.ct .ct-open{display:block;width:100%;margin:0;padding:0;border:0;border-radius:12px;background:none;color:var(--ct-navy);font-family:inherit;text-align:left;cursor:pointer}
+.ct-photo{display:grid;place-items:center;width:100%;aspect-ratio:16/10;max-height:140px;margin-bottom:8px;border-radius:12px;overflow:hidden;background:#efe9de;color:#a89b84}
+.ct-photo img{width:100%;height:100%;object-fit:cover}
+.ct-name{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:14px;font-weight:600;line-height:1.3}
+.ct.ct .ct-open:hover:not(:disabled) .ct-name{text-decoration:underline;text-underline-offset:3px}
+.ct .ct-remove{display:inline-flex;align-items:center;gap:5px;margin:8px 0 0;padding:5px 10px;border:0;border-radius:20px;background:#eef0f4;color:var(--ct-navy);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background-color .15s}
+.ct.ct .ct-remove:hover:not(:disabled){background:#e1e5ec}
+
+.ct-dpe{display:inline-grid;place-items:center;min-width:28px;height:24px;padding:0 7px;border-radius:6px;font-size:14px;font-weight:700;color:#1B2A40}
+.ct-dpe-A{background:#00845A;color:#fff}.ct-dpe-B{background:#52B153}.ct-dpe-C{background:#A5CC74}.ct-dpe-D{background:#F4E70F}.ct-dpe-E{background:#F0B40F}.ct-dpe-F{background:#EB8235}.ct-dpe-G{background:#D7221F;color:#fff}
+
+@keyframes ct-fade{from{opacity:0}to{opacity:1}}
+@keyframes ct-pop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+
+/* Mobile : plein écran, colonnes défilables horizontalement, intitulés de ligne figés à gauche. */
+@media (max-width:800px){
+.ct-backdrop{padding:0;align-items:stretch}
+.ct{max-width:none;max-height:none;height:100%;border-radius:0;padding-top:env(safe-area-inset-top)}
+.ct .ct-close{top:calc(10px + env(safe-area-inset-top));right:10px}
+.ct-head{padding:18px 62px 12px 16px}
+.ct .ct-title{font-size:21px}
+.ct-legend{display:flex;margin:4px 0 0}
+.ct .ct-credit{padding:10px 16px calc(12px + env(safe-area-inset-bottom))}
+.ct-scroll{flex:1;padding:0 0 calc(18px + env(safe-area-inset-bottom));scroll-snap-type:x mandatory;scroll-padding-left:100px}
+.ct-table{width:auto;min-width:100%;table-layout:auto}
+.ct-table .ct-label{position:sticky;left:0;z-index:1;width:100px;min-width:100px;padding-left:16px;padding-right:8px;box-shadow:6px 0 8px -6px #18263d33}
+/* Deux colonnes remplissent exactement l'espace visible : jamais de colonne coupée en fin de défilement. */
+.ct-table thead th.ct-col,.ct-table td{min-width:calc((100vw - 100px) / 2);width:calc((100vw - 100px) / 2)}
+.ct-table thead th.ct-col{scroll-snap-align:start}
+}
+@media (prefers-reduced-motion:reduce){.ct-backdrop,.ct,.ct *{animation:none!important;transition:none!important}}
+
+/* Mode sombre automatique : fenêtre #182033, lignes #212B40, fond assombri plus opaque, étoile violet clair. */
+@media (prefers-color-scheme:dark){
+.ct-backdrop{background:#05080fc7}
+.ct{--ct-navy:#E7ECF4;--ct-muted:#A9B4C6;--ct-line:#FFFFFF1F;background:#182033;box-shadow:0 24px 80px #000000a6}
+.ct.ct :focus-visible{outline-color:#E0A458}
+.ct .ct-close{background:#212B40}
+.ct.ct .ct-close:hover:not(:disabled){background:#2A3550}
+.ct-star{color:#A78BFA}
+.ct-table .ct-label{color:#A9B4C6;background:#182033}
+.ct-table tbody th,.ct-table tbody td{background:#212B40}
+.ct-table tbody .ct-label{background:#212B40}
+.ct-table .ct-hover{background:#2A3550}
+.ct-table .ct-best{background:#2E2A55}
+.ct-photo{background:#212B40;color:#6B778C}
+.ct .ct-remove{background:#2A3550}
+.ct.ct .ct-remove:hover:not(:disabled){background:#34405C}
+}
+@media (prefers-color-scheme:dark) and (max-width:800px){.ct-table .ct-label{box-shadow:6px 0 8px -6px #000000b3}}

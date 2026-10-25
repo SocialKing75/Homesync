@@ -39,6 +39,8 @@ test('parcours navigateur avec le vrai backend local', async ({ page }) => {
   await page.locator('.hs-open').first().click(); await page.getByRole('button', { name: 'Retirer le favori Gold' }).click();
   await page.getByRole('button', { name: 'Fermer', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Favoris (0)' })).toBeVisible();
+  // La déconnexion est dans la liste déroulante du profil (en-tête).
+  await page.locator('.hs-profile-btn').click();
   await page.getByRole('button', { name: 'Se déconnecter' }).click();
   expect(errors).toEqual([]);
 });

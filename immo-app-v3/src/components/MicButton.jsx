@@ -10,14 +10,22 @@ const SpeechRecognition = typeof window !== 'undefined'
   ? window.SpeechRecognition || window.webkitSpeechRecognition
   : null;
 
-const ERREURS = {
-  'not-allowed': 'Micro refusé : autorisez-le dans les réglages du navigateur.',
-  'service-not-allowed': 'Micro refusé : autorisez-le dans les réglages du navigateur.',
-  'audio-capture': 'Aucun micro détecté.',
-  network: 'La dictée nécessite une connexion internet.',
+const TEXTES = {
+  fr: {
+    refus: 'Micro refusé : autorisez-le dans les réglages du navigateur.', aucun: 'Aucun micro détecté.',
+    reseau: 'La dictée nécessite une connexion internet.', rien: "Je n'ai rien entendu, réessayez.",
+    dicter: 'Dicter mon message', arreter: 'Arrêter la dictée', voix: 'fr-FR',
+  },
+  en: {
+    refus: 'Microphone blocked: allow it in your browser settings.', aucun: 'No microphone detected.',
+    reseau: 'Dictation needs an internet connection.', rien: "I didn't hear anything, please try again.",
+    dicter: 'Dictate my message', arreter: 'Stop dictation', voix: 'en-US',
+  },
 };
 
-export default function MicButton({ value, onChange, onErreur = () => {} }) {
+export default function MicButton({ value, onChange, onErreur = () => {}, lang = 'fr' }) {
+  const tx = TEXTES[lang] || TEXTES.fr;
+  const ERREURS = { 'not-allowed': tx.refus, 'service-not-allowed': tx.refus, 'audio-capture': tx.aucun, network: tx.reseau };
   const [ecoute, setEcoute] = useState(false);
   const recRef = useRef(null);
 
@@ -32,12 +40,12 @@ export default function MicButton({ value, onChange, onErreur = () => {} }) {
     }
     const base = value.trim();
     const rec = new SpeechRecognition();
-    rec.lang = 'fr-FR';
+    rec.lang = tx.voix;
     rec.interimResults = true; // affichage en direct pendant qu'on parle
     rec.continuous = false;    // s'arrête seul après une pause
     rec.onstart = () => { setEcoute(true); onErreur(''); };
     rec.onend = () => setEcoute(false);
-    rec.onerror = (e) => onErreur(ERREURS[e.error] || (e.error === 'no-speech' ? "Je n'ai rien entendu, réessayez." : ''));
+    rec.onerror = (e) => onErreur(ERREURS[e.error] || (e.error === 'no-speech' ? tx.rien : ''));
     rec.onresult = (e) => {
       const dicte = Array.from(e.results, r => r[0].transcript).join('').trim();
       onChange(base ? `${base} ${dicte}` : dicte);
@@ -50,8 +58,8 @@ export default function MicButton({ value, onChange, onErreur = () => {} }) {
     <button
       type="button"
       className={`chat-mic-btn${ecoute ? ' active' : ''}`}
-      aria-label={ecoute ? 'Arrêter la dictée' : 'Dicter mon message'}
-      title={ecoute ? 'Arrêter la dictée' : 'Dicter mon message'}
+      aria-label={ecoute ? tx.arreter : tx.dicter}
+      title={ecoute ? tx.arreter : tx.dicter}
       onClick={toggle}
     >
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

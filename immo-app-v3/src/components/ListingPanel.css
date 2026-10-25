@@ -1,0 +1,174 @@
+/* Panneau d'annonce : à gauche de la carte sur ordinateur, feuille plein écran sur mobile.
+   Aucune bordure colorée : bordures neutres, la couleur passe par les aplats (boutons, pastilles). */
+.lp{--lp-navy:#2D4263;--lp-muted:#5A6678;--lp-label:#5D6B80;--lp-soft:#faf7f0;--lp-line:#2d42631a;position:absolute;left:0;top:0;bottom:0;z-index:20;width:min(400px,92%);display:flex;flex-direction:column;background:#fff;color:var(--lp-navy);box-shadow:8px 0 30px #18263d2e;line-height:1.45;text-align:left;animation:lp-in .22s ease-out}
+.lp *{box-sizing:border-box}
+.lp-scroll{flex:1;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scroll-padding-top:72px}
+.lp :focus-visible{outline:3px solid #9b5e29;outline-offset:3px}
+.lp-sr{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+/* Les survols globaux (.hs button:hover) ne s'appliquent pas ici. */
+.lp.lp button:hover:not(:disabled){transform:none;box-shadow:none}
+
+/* Fermer : rond blanc, toujours visible en haut à droite. */
+.lp .lp-close{position:absolute;z-index:3;top:12px;right:12px;width:40px;height:40px;margin:0;padding:0;display:grid;place-items:center;border:0;border-radius:50%;background:#fff;color:var(--lp-navy);box-shadow:0 2px 10px #18263d40;cursor:pointer;transition:background-color .15s}
+.lp.lp .lp-close:hover:not(:disabled){background:#f1ede5;box-shadow:0 2px 10px #18263d40}
+/* Barre compacte au défilement : le bouton fermer ne recouvre plus le contenu. */
+.lp-bar{position:absolute;z-index:2;top:0;left:0;right:0;height:64px;display:flex;align-items:center;padding:0 64px 0 20px;background:#fff;box-shadow:0 1px 0 var(--lp-line),0 6px 16px #18263d14;opacity:0;visibility:hidden;transition:opacity .15s,visibility .15s}
+.lp-bar.lp-bar-on{opacity:1;visibility:visible}
+.lp-bar span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:16px;font-weight:700}
+.lp .lp-bar-on~.lp-close{background:#f3f0ea;box-shadow:none}
+.lp.lp .lp-bar-on~.lp-close:hover:not(:disabled){background:#e9e4da;box-shadow:none}
+
+/* Galerie. */
+.lp-gallery{position:relative;aspect-ratio:5/3;background:#efe9de;overflow:hidden}
+.lp-track{display:flex;height:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none}
+.lp-track::-webkit-scrollbar{display:none}
+/* Focus clavier de la galerie : anneau peint au-dessus des photos (calque dédié). */
+.lp .lp-track:focus-visible{outline:none}
+.lp-ring{position:absolute;inset:0;pointer-events:none}
+.lp .lp-track:focus-visible+.lp-ring{box-shadow:inset 0 0 0 3px #9b5e29,inset 0 0 0 6px #fff}
+.lp-slide{position:relative;flex:0 0 100%;height:100%;display:grid;place-items:center;scroll-snap-align:start;scroll-snap-stop:always;color:#b3a791}
+.lp-slide img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;user-select:none}
+.lp .lp-nav{position:absolute;top:50%;width:40px;height:40px;margin:-20px 0 0;padding:0;display:grid;place-items:center;border:0;border-radius:50%;background:#fffffff2;color:var(--lp-navy);box-shadow:0 2px 10px #18263d40;cursor:pointer;transition:opacity .15s,background-color .15s}
+.lp.lp .lp-nav:hover:not(:disabled){background:#fff;box-shadow:0 2px 12px #18263d59}
+.lp .lp-nav[aria-disabled=true]{opacity:.4;cursor:default}
+.lp .lp-prev{left:12px}
+.lp .lp-next{right:12px}
+.lp-count{position:absolute;right:12px;bottom:12px;padding:3px 10px;border-radius:20px;background:#18263dcc;color:#fff;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;pointer-events:none}
+.lp-gallery-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--lp-muted);font-size:14px}
+.lp-gallery-empty svg{color:#a89b84}
+
+/* Contenu. */
+.lp-body{padding:18px 20px 28px}
+.lp .lp-body p{margin:0}
+.lp .lp-title{margin:0;font-size:20px;font-weight:700;line-height:1.25;letter-spacing:-.01em;color:var(--lp-navy);overflow-wrap:anywhere}
+/* Titre : point d'arrivée du focus à l'ouverture (lu par les lecteurs d'écran), sans contour. */
+.lp .lp-title:focus{outline:none}
+.lp .lp-body .lp-place{display:flex;gap:6px;align-items:flex-start;margin:8px 0 18px;font-size:14px;color:var(--lp-muted)}
+.lp-place svg{flex-shrink:0;margin-top:2px;color:var(--lp-navy)}
+.lp .lp-h3{margin:0 0 10px;font-size:16px;font-weight:600;line-height:1.3;color:var(--lp-navy)}
+
+/* Prix, charges, total. */
+.lp-price{margin:0 0 22px;padding:2px 16px;border-radius:14px;background:var(--lp-soft)}
+.lp-price>div,.lp-price>dl>div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 0}
+.lp-price>div+div,.lp-price>dl>div+div{border-top:1px solid var(--lp-line)}
+.lp-price dt{font-size:14px;color:var(--lp-muted)}
+.lp-price dd{margin:0;font-size:16px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.lp-price .lp-muted{font-weight:500;color:var(--lp-muted)}
+.lp-price .lp-total dt{font-weight:600;color:var(--lp-navy)}
+.lp-price .lp-total dd{font-size:21px;font-weight:700;line-height:1.2}
+.lp .lp-total small{display:block;margin-top:2px;font-size:12px;font-weight:500;color:var(--lp-muted)}
+/* Location : prix par nuit, séjour minimum, frais affichés sur l'annonce d'origine. */
+.lp-price>dl{margin:0}
+.lp-unit{font-size:14px;font-weight:500;color:var(--lp-muted)}
+.lp .lp-price .lp-fees{padding:9px 0 11px;border-top:1px solid var(--lp-line);font-size:13px;color:var(--lp-muted)}
+.lp-reviews{font-weight:500;color:var(--lp-muted)}
+
+/* Caractéristiques : moitiés, type en pleine largeur, équipements en tiers. */
+.lp-facts{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:0 0 22px}
+.lp-facts>div{grid-column:span 3;min-width:0;padding:9px 12px;border-radius:12px;background:var(--lp-soft)}
+.lp-facts>.lp-wide{grid-column:1/-1}
+.lp-facts>.lp-eq{grid-column:span 2}
+.lp-facts dt{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--lp-label)}
+.lp-facts dd{margin:2px 0 0;font-size:15px;font-weight:600;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.lp .lp-facts dd small{display:block;font-size:11px;font-weight:500;color:var(--lp-muted)}
+.lp-dpe{display:inline-grid;place-items:center;min-width:28px;height:24px;padding:0 7px;border-radius:6px;font-size:14px;font-weight:700;color:#1B2A40}
+.lp-dpe-A{background:#00845A;color:#fff}.lp-dpe-B{background:#52B153}.lp-dpe-C{background:#A5CC74}.lp-dpe-D{background:#F4E70F}.lp-dpe-E{background:#F0B40F}.lp-dpe-F{background:#EB8235}.lp-dpe-G{background:#D7221F;color:#fff}
+
+/* Description. */
+.lp-desc{margin:0 0 22px}
+.lp .lp-desc p{font-size:14px;color:#3d4a5c;white-space:pre-line;overflow-wrap:anywhere}
+.lp .lp-desc .lp-clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.lp .lp-more{margin:4px 0 0;padding:4px 0;border:0;border-radius:4px;background:none;color:var(--lp-navy);font-family:inherit;font-size:14px;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+/* Matching. */
+.lp-match{margin:0 0 22px;padding:14px 16px 6px;border-radius:14px;background:var(--lp-soft)}
+.lp-match-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.lp .lp-match-head .lp-h3{margin:0}
+.lp-score{padding:2px 10px;border-radius:20px;background:#e6e9f0;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+.lp-score small{font-size:12px;font-weight:600;color:var(--lp-muted)}
+.lp .lp-body .lp-match-by{margin:4px 0 8px;font-size:12px;color:var(--lp-muted)}
+.lp-criteria{list-style:none;margin:0;padding:0}
+.lp-criteria li{padding:9px 0;border-top:1px solid var(--lp-line)}
+.lp-criteria li>div{display:flex;justify-content:space-between;gap:10px;font-size:14px;font-weight:600}
+.lp-criteria b{font-weight:700;font-variant-numeric:tabular-nums}
+.lp .lp-criteria p{margin-top:2px;font-size:13px;color:var(--lp-muted)}
+
+/* Actions : chaque bouton a sa couleur (texte ≥ 4.5:1), « Demander une visite » en premier plan. */
+.lp-actions{display:grid;gap:8px;container-type:inline-size}
+.lp-row{display:flex;gap:8px}
+.lp-row>.lp-btn{flex:1 1 0}
+.lp-row>.lp-gold{flex:0 0 auto}
+.lp .lp-btn{display:flex;align-items:center;justify-content:center;gap:8px;min-width:0;min-height:46px;margin:0;padding:8px 12px;border:0;border-radius:12px;background:var(--lp-b);color:var(--lp-f);font-family:inherit;font-size:15px;font-weight:600;line-height:1.2;text-align:center;text-decoration:none;cursor:pointer;box-shadow:none;transition:background-color .15s,transform .15s,box-shadow .15s}
+.lp .lp-btn svg{flex-shrink:0}
+.lp .lp-row .lp-btn{gap:6px;padding:8px 10px;font-size:14px}
+.lp.lp .lp-btn:hover:not([aria-disabled=true]){background:var(--lp-h);transform:translateY(-1px);box-shadow:0 4px 12px #18263d24}
+.lp.lp .lp-btn:active:not([aria-disabled=true]){transform:none}
+.lp .lp-btn[aria-disabled=true]{opacity:.5;cursor:not-allowed}
+.lp .lp-row[aria-busy=true] .lp-btn{opacity:.7;cursor:progress}
+.lp .lp-fav{--lp-b:#BE185D;--lp-h:#9D174D;--lp-f:#fff}
+.lp .lp-fav[aria-pressed=true]{--lp-b:#831843;--lp-h:#6B1238}
+.lp .lp-row .lp-gold{--lp-b:#E8C547;--lp-h:#D9B232;--lp-f:#3F2E00;background-image:linear-gradient(135deg,#FFF1A8 0%,#E8C547 48%,#C9A227 100%);padding:8px 14px}
+.lp .lp-row .lp-gold[aria-pressed=true]{--lp-b:#8F6D00;--lp-h:#6E5300;--lp-f:#fff;background-image:linear-gradient(135deg,#8F6D00,#6E5300)}
+.lp .lp-compare{--lp-b:#6D28D9;--lp-h:#5B21B6;--lp-f:#fff}
+.lp .lp-compare[aria-pressed=true]{--lp-b:#4C1D95;--lp-h:#3B1577}
+.lp .lp-ask{--lp-b:#FFB020;--lp-h:#F0A30A;--lp-f:#2D4263}
+.lp .lp-visit{--lp-b:#C2410C;--lp-h:#9A3412;--lp-f:#fff;min-height:52px;margin-top:6px;border-radius:14px;font-size:16px;font-weight:700;box-shadow:0 6px 16px #c2410c33}
+.lp.lp .lp-visit:hover:not([aria-disabled=true]){box-shadow:0 8px 20px #c2410c47}
+.lp .lp-visit[aria-disabled=true]{box-shadow:none}
+.lp .lp-body .lp-note{font-size:12.5px;line-height:1.4;color:var(--lp-muted);text-align:center}
+/* Mention obligatoire des données Inside Airbnb (CC BY 4.0), en bas du panneau. */
+.lp .lp-body .lp-credit{margin-top:22px;padding-top:12px;border-top:1px solid var(--lp-line);font-size:11.5px;line-height:1.5;color:var(--lp-muted)}
+.lp .lp-credit a{color:var(--lp-navy);text-decoration:underline;text-underline-offset:2px}
+
+/* Panneau trop étroit pour deux libellés longs côte à côte : on empile Comparer et Poser une question. */
+@container (max-width:339px){.lp-row2{flex-direction:column}.lp-row2>.lp-btn{flex:none}}
+
+@keyframes lp-in{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+@keyframes lp-up{from{transform:translateY(100%)}to{transform:none}}
+
+/* Mobile : feuille plein écran qui monte du bas. */
+@media (max-width:800px){
+.lp{position:fixed;inset:0;width:auto;z-index:1500;box-shadow:none;animation:lp-up .28s cubic-bezier(.2,.8,.2,1)}
+.lp .lp-close{top:calc(12px + env(safe-area-inset-top))}
+.lp-body{padding:16px 16px calc(28px + env(safe-area-inset-bottom))}
+.lp-bar{height:calc(64px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 64px 0 16px}
+}
+@media (prefers-reduced-motion:reduce){.lp,.lp *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* Intégration dans HomeSync : bandeau et contrôles décalés quand le panneau est ouvert ; bouton du comparatif. */
+@media(min-width:801px){.hs-has-detail .hs-strip{left:412px}.hs-has-detail .hs-map-styles{left:410px}.hs .hs-has-detail .hs-map-caption{left:412px;max-width:calc(100% - var(--chat-w, 420px) - 492px)}}
+.hs .hs-strip-compare{background:#6D28D9;color:#fff}
+/* Le Gold garde son dégradé doré au survol. */
+.lp.lp .lp-row .lp-gold:hover:not([aria-disabled=true]){background-image:linear-gradient(135deg,#FFF1A8 0%,#D9B232 50%,#B8901C 100%)}
+.lp.lp .lp-row .lp-gold[aria-pressed=true]:hover:not([aria-disabled=true]){background-image:linear-gradient(135deg,#7A5C00,#5C4500)}
+
+/* Mode sombre automatique (réglage de l'appareil) : surfaces sombres, texte clair. Les boutons gardent leur
+   couleur, ajustée seulement pour rester ≥ 4.5:1 (texte) et ≥ 3:1 (contour contre la surface #182033) ;
+   les états « activé » passent en aplat clair. Pastilles DPE inchangées, aucune bordure colorée. */
+@media (prefers-color-scheme:dark){
+.lp{--lp-navy:#E7ECF4;--lp-muted:#A9B4C6;--lp-label:#A9B4C6;--lp-soft:#212B40;--lp-line:#FFFFFF1F;background:#182033;box-shadow:8px 0 30px #00000080}
+.lp.lp :focus-visible{outline-color:#E0A458}
+.lp .lp-close{background:#212B40;box-shadow:0 2px 10px #00000080}
+.lp.lp .lp-close:hover:not(:disabled){background:#2A3550;box-shadow:0 2px 10px #00000080}
+.lp-bar{background:#182033;box-shadow:0 1px 0 var(--lp-line),0 6px 16px #00000059}
+.lp .lp-bar-on~.lp-close{background:#212B40}
+.lp.lp .lp-bar-on~.lp-close:hover:not(:disabled){background:#2A3550}
+.lp-gallery{background:#212B40}
+.lp-slide{color:#4A566E}
+.lp .lp-track:focus-visible+.lp-ring{box-shadow:inset 0 0 0 3px #E0A458,inset 0 0 0 6px #182033}
+.lp .lp-nav{background:#182033eb;box-shadow:0 2px 10px #00000080}
+.lp.lp .lp-nav:hover:not(:disabled){background:#212B40;box-shadow:0 2px 12px #00000099}
+.lp-gallery-empty svg{color:#6B778C}
+.lp .lp-desc p{color:#CDD5E1}
+.lp-score{background:#2A3550}
+.lp.lp .lp-btn:hover:not([aria-disabled=true]){box-shadow:0 4px 12px #00000066}
+.lp .lp-fav{--lp-b:#DB2777;--lp-h:#C9216C}
+.lp .lp-fav[aria-pressed=true]{--lp-b:#FBCFE8;--lp-h:#F9A8D4;--lp-f:#831843}
+.lp .lp-row .lp-gold[aria-pressed=true]{--lp-b:#8F6D00;--lp-h:#8A6A00;background-image:linear-gradient(135deg,#8F6D00,#8A6A00)}
+.lp.lp .lp-row .lp-gold[aria-pressed=true]:hover:not([aria-disabled=true]){background-image:linear-gradient(135deg,#8A6A00,#8F6D00)}
+.lp .lp-compare{--lp-b:#8040F2;--lp-h:#8B4FF5}
+.lp .lp-compare[aria-pressed=true]{--lp-b:#DDD6FE;--lp-h:#C4B5FD;--lp-f:#4C1D95}
+.lp .lp-visit{--lp-h:#CC4510;box-shadow:0 6px 16px #00000066}
+.lp.lp .lp-visit:hover:not([aria-disabled=true]){box-shadow:0 8px 20px #00000080}
+.hs .hs-strip-compare{background:#8040F2}
+}

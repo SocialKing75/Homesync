@@ -6,7 +6,7 @@ import { api } from '../api';
 export const connected = {
   chat: body => api('/api/chat', { method: 'POST', body }),
   /** @returns {Promise<{ok:boolean,status:number,data:{annonces:Annonce[]}}>} */
-  results: id => api(`/api/chat/resultats/${encodeURIComponent(id)}`),
+  results: (id, lang) => api(`/api/chat/resultats/${encodeURIComponent(id)}${lang ? `?lang=${lang}` : ''}`),
   me: () => api('/api/auth/me'),
   login: body => api('/api/auth/login', { method: 'POST', auth: false, body }),
   register: body => api('/api/auth/register', { method: 'POST', auth: false, body }),

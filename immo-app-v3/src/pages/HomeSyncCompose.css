@@ -1,0 +1,17 @@
+/* Zone de saisie de la conversation : un seul champ arrondi, avec le micro et l'envoi à l'intérieur. */
+.hs-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.hs .hs-compose{padding:12px 16px 10px}
+.hs .hs-compose-box{display:flex;align-items:flex-end;gap:6px;background:#fff;border:1px solid #2d426326;border-radius:24px;padding:6px 6px 6px 16px;box-shadow:0 4px 16px #18263d14;transition:box-shadow .15s,border-color .15s}
+.hs .hs-compose-box:focus-within{border-color:#2d42634d;box-shadow:0 0 0 3px #2d42631f,0 4px 18px #18263d1f}
+.hs .hs-compose-box textarea{flex:1;min-width:0;border:0;background:transparent;padding:10px 0;min-height:24px;max-height:150px;resize:none;field-sizing:content;font-size:15px;line-height:1.4;color:var(--navy);border-radius:0}
+.hs .hs-compose-box textarea:focus-visible{outline:none}
+.hs .hs-compose-box .chat-mic-btn{width:40px;height:40px;border-radius:50%;margin:0;padding:0;border:0;background:#f1eee7;color:var(--navy)}
+.hs .hs-compose-box .chat-mic-btn.active{background:var(--accent);color:#fff}
+.hs .hs-send{width:40px;height:40px;border-radius:50%;padding:0;margin:0;display:grid;place-items:center;flex-shrink:0;background:var(--accent);color:#fff;border:0}
+.hs .hs-send:disabled{opacity:.35;cursor:default}
+.hs .hs-compose small{display:block;margin-top:7px;color:#3d4a5c;font-size:11px;text-align:center}
+.hs .hs-compose .hs-mic-info{color:#783c25}
+/* Favori Gold dans le bandeau : doré, comme dans le panneau d'annonce. */
+.hs .hs-like.gold{background-image:linear-gradient(135deg,#FFF1A8 0%,#E8C547 48%,#C9A227 100%);color:#3F2E00;font-weight:700}
+/* Sombre : champ sur surface sombre, contour neutre (≥ 3:1), texte et indication clairs. */
+@media(prefers-color-scheme:dark){.hs .hs-compose-box{background:#212B40;border-color:#ffffff59;box-shadow:0 4px 16px #00000059}.hs .hs-compose-box:focus-within{border-color:#ffffff8c;box-shadow:0 0 0 3px #ffffff1f,0 4px 18px #00000066}.hs .hs-compose-box textarea{color:#E7ECF4}.hs .hs-compose-box textarea::placeholder{color:#A9B4C6;opacity:1}.hs .hs-compose-box .chat-mic-btn{background:#2C3852;color:#E7ECF4}.hs .hs-compose small{color:#A9B4C6}.hs .hs-compose .hs-mic-info{color:#E0A46B}}
