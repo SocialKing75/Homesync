@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api, errorText } from '../api';
-import './Login.css';
+import './HomeSync.css';
 
 /* Page ouverte depuis le lien de l'email de vérification. */
 export default function VerifierEmail() {
@@ -25,15 +25,15 @@ export default function VerifierEmail() {
   }, [params]);
 
   return (
-    <div className="landing-wrapper">
-      <div className="landing-main" style={{ marginTop: 80 }}>
-        <div className="landing-search-card" style={{ maxWidth: 520, textAlign: 'center' }}>
-          <h2 className="card-title">
-            {etat.statut === 'ok' ? '✅ Compte activé' : etat.statut === 'erreur' ? '⚠️ Vérification impossible' : 'Vérification…'}
+    <div className="hs hs-landing">
+      <div className="hs-hero">
+        <div className="hs-start" style={{ maxWidth: 520 }}>
+          <h2>
+            {etat.statut === 'ok' ? 'Adresse vérifiée' : etat.statut === 'erreur' ? 'Vérification impossible' : 'Vérification…'}
           </h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: 8 }}>{etat.message}</p>
           {etat.statut !== 'encours' && (
-            <Link to="/" className="primary-search-btn" style={{ display: 'block', textDecoration: 'none' }}>
+            <Link to="/" className="hs-link" style={{ display: 'block' }}>
               Retour à la recherche
             </Link>
           )}

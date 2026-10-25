@@ -6,9 +6,10 @@ module.exports = {
     'plugin:react-hooks/recommended',
   ],
   ignorePatterns: ['dist'],
-  parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
-  plugins: ['react-refresh'],
+  parserOptions: { ecmaVersion: 'latest', sourceType: 'module', ecmaFeatures: { jsx: true } },
+  plugins: ['react-refresh', 'react'],
   rules: {
+    'react/jsx-uses-vars': 'error',
     'react-refresh/only-export-components': [
       'warn',
       { allowConstantExport: true },
