@@ -12,6 +12,7 @@ import { getToken } from './api';
 
 import Favoris from './pages/Favoris';
 import Profil from './pages/Profil';
+import AgenceWorkspace from './pages/AgenceWorkspace';
 function PrivateRoute({ children }) {
   const { user } = useApp();
   return user || getToken() ? children : <Navigate to="/" replace />;
@@ -27,6 +28,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Onboarding />} />
       <Route path="/recherche" element={<ChatMap />} />
+      <Route path="/agence" element={<AgenceWorkspace />} />
       <Route path="/verifier-email" element={<VerifierEmail />} />
       <Route path="/decouvrir/:searchId" element={<Decouvrir />} />
       <Route path="/accueil" element={<Navigate to="/recherche" replace />} />

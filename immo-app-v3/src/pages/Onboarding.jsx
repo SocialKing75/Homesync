@@ -53,7 +53,7 @@ export default function Onboarding() {
               </button>
               <div className="choice-footer">
                 <span>{profile.points.join(' · ')}</span>
-                <button onClick={() => navigate('/recherche')}>{profile.cta}<span aria-hidden="true">→</span></button>
+                <button onClick={() => navigate(profile.id === 'agence' ? '/agence' : '/recherche')}>{profile.cta}<span aria-hidden="true">→</span></button>
               </div>
             </article>
           ))}

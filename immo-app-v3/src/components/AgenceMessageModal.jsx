@@ -1,18 +1,21 @@
 import { useState } from 'react';
+import { createVisitRequest } from '../services/agencyWorkspace';
 import './AgenceMessageModal.css';
 
 export default function AgenceMessageModal({ isOpen, onClose, annonce, coUsers = [] }) {
   const [sent, setSent] = useState(false);
   const coNames = coUsers.length > 0 ? `Marc Ivan et ${coUsers.map(u => u.name).join(', ')}` : 'Marc Ivan';
-  const agenceNom = `Agence Toulon ${annonce?.quartier?.split(' ')[0] || 'Littoral'}`;
+  const location = annonce?.ville || annonce?.quartier || 'France';
+  const agenceNom = annonce?.agence || `Annonceur · ${location}`;
 
-  const defaultDraft = `Bonjour,\n\nNous sommes très intéressés par votre ${annonce?.type || 'bien'} de ${annonce?.surface || 68} m² situé à ${annonce?.quartier || 'Toulon'} proposé à ${annonce?.prix?.toLocaleString('fr-FR') || '280 000'} € FAI (Réf #${annonce?.id || 101}). Nous serions ${coUsers.length > 0 ? 'deux acquéreurs' : 'acquéreur'}, ${coNames}.\n\nSerait-il possible de convenir d'un créneau de visite ? Nous serions disponibles [à compléter : vos créneaux prioritaires en semaine ou samedi].\n\nBien cordialement,\n${coNames}`;
+  const defaultDraft = `Bonjour,\n\nNous sommes intéressés par votre ${annonce?.type || 'bien'} de ${annonce?.surface || '—'} m² situé à ${location}, proposé à ${annonce?.prix?.toLocaleString('fr-FR') || '—'} € (réf. ${annonce?.id || '—'}).\n\nSerait-il possible de convenir d’un créneau de visite ?\n\nBien cordialement,\n${coNames}`;
 
   const [message, setMessage] = useState(defaultDraft);
 
   if (!isOpen || !annonce) return null;
 
   const handleSend = () => {
+    createVisitRequest({ annonce, clientName: coNames, message });
     setSent(true);
     setTimeout(() => {
       setSent(false);
@@ -36,7 +39,7 @@ export default function AgenceMessageModal({ isOpen, onClose, annonce, coUsers =
           <div className="agence-avatar-icon">🏢</div>
           <div>
             <h3 className="agence-title">Avec l'annonceur · {agenceNom}</h3>
-            <p className="agence-sub">Partenaire certifié HomeSync · Réponse moyenne en 2h</p>
+            <p className="agence-sub">Fil de contact associé à cette annonce</p>
           </div>
           <div className="agence-participants-pills">
             <span>👥 Participants : {coNames}, {agenceNom}</span>
@@ -68,7 +71,7 @@ export default function AgenceMessageModal({ isOpen, onClose, annonce, coUsers =
             <div className="sent-check-icon">✓</div>
             <h4>Demande de visite transmise avec succès !</h4>
             <p>
-              Votre message a été envoyé à <strong>{agenceNom}</strong>. Vous recevrez une notification par email dès la confirmation du créneau.
+              Votre demande est maintenant disponible dans l’espace agence HomeSync. L’agence pourra accepter la visite et vous répondre depuis son tableau de suivi.
             </p>
           </div>
         ) : (

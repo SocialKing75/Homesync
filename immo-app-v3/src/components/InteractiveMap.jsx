@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import maplibregl from 'maplibre-gl';
@@ -107,6 +107,13 @@ const fmtPrix = (v) => {
   return `${Math.round(v / 1000)}k €`;
 };
 
+const hasCoordinates = (lng, lat) => {
+  const longitude = Number(lng);
+  const latitude = Number(lat);
+  return Number.isFinite(longitude) && Number.isFinite(latitude)
+    && longitude >= -6 && longitude <= 10 && latitude >= 41 && latitude <= 52;
+};
+
 export default function InteractiveMap({
   annonces = [],
   targetQuartier = null,
@@ -121,7 +128,6 @@ export default function InteractiveMap({
   const mapRef = useRef(null);
   const markersRef = useRef([]);
   const poiMarkerRef = useRef(null);
-  const [showGuide, setShowGuide] = useState(true);
 
   // Resize map when expanded state changes
   useEffect(() => {
@@ -159,106 +165,6 @@ export default function InteractiveMap({
     map.addControl(new MapClass.NavigationControl({ showCompass: false }), 'bottom-right');
     mapRef.current = map;
 
-    map.on('load', async () => {
-      // 1. Text halo & readability
-      const styleObj = map.getStyle();
-      const layers = styleObj?.layers || [];
-      let firstSymbolId;
-      for (let i = 0; i < layers.length; i++) {
-        if (layers[i].type === 'symbol' && !firstSymbolId) {
-          firstSymbolId = layers[i].id;
-        }
-        if (layers[i].type === 'symbol' && layers[i].layout && layers[i].layout['text-field']) {
-          try {
-            map.setPaintProperty(layers[i].id, 'text-color', '#1e293b');
-            map.setPaintProperty(layers[i].id, 'text-halo-color', '#ffffff');
-            map.setPaintProperty(layers[i].id, 'text-halo-width', 2);
-          } catch (e) {
-            // pass
-          }
-        }
-      }
-
-      // 2. Fetch Toulon IRIS & Commune outline
-      try {
-        const [resIris, resCommune] = await Promise.all([
-          fetch('https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/georef-france-iris/exports/geojson?where=com_code%3D%2283137%22').then(r => r.json()),
-          fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/communes.geojson').then(r => r.json())
-        ]);
-
-        const outlineFeatures = resCommune.features?.filter(f => f.properties.code === '83137') || [];
-        const outlineData = { type: 'FeatureCollection', features: outlineFeatures };
-
-        resIris.features?.forEach((feature, i) => {
-          feature.properties.nom_affichage = feature.properties.iris_name || feature.properties.nom || `Secteur ${i}`;
-          feature.properties.Prix_m2_Moyen = Math.floor(Math.random() * (7500 - 2900) + 2900);
-        });
-
-        map.addSource('iris', { type: 'geojson', data: resIris, generateId: true });
-        map.addSource('outline', { type: 'geojson', data: outlineData });
-
-        const priceColorScale = [
-          'interpolate', ['linear'], ['get', 'Prix_m2_Moyen'],
-          2800, 'rgba(254, 243, 199, 0.45)',
-          4000, 'rgba(253, 230, 138, 0.50)',
-          5000, 'rgba(245, 158, 11, 0.40)',
-          6500, 'rgba(217, 119, 6, 0.50)',
-          8000, 'rgba(180, 83, 9, 0.60)'
-        ];
-
-        const layerBefore = hasValidMapboxToken ? firstSymbolId : undefined;
-
-        map.addLayer({
-          id: 'iris-fills',
-          type: 'fill',
-          source: 'iris',
-          paint: {
-            'fill-color': priceColorScale,
-            'fill-opacity': 0.7,
-          }
-        }, layerBefore);
-
-        map.addLayer({
-          id: 'iris-borders',
-          type: 'line',
-          source: 'iris',
-          paint: {
-            'line-color': '#ffffff',
-            'line-width': 1.2,
-          }
-        }, layerBefore);
-
-        map.addLayer({
-          id: 'city-outline',
-          type: 'line',
-          source: 'outline',
-          paint: {
-            'line-color': '#d97706',
-            'line-width': 2.5,
-          }
-        }, layerBefore);
-
-        let hoveredStateId = null;
-        map.on('mousemove', 'iris-fills', (e) => {
-          if (e.features?.length > 0) {
-            if (hoveredStateId !== null) {
-              map.setFeatureState({ source: 'iris', id: hoveredStateId }, { hover: false });
-            }
-            hoveredStateId = e.features[0].id;
-            map.setFeatureState({ source: 'iris', id: hoveredStateId }, { hover: true });
-          }
-        });
-        map.on('mouseleave', 'iris-fills', () => {
-          if (hoveredStateId !== null) {
-            map.setFeatureState({ source: 'iris', id: hoveredStateId }, { hover: false });
-          }
-          hoveredStateId = null;
-        });
-      } catch (err) {
-        console.warn('GeoJSON IRIS fetch notice:', err);
-      }
-    });
-
     return () => {
       map.remove();
       mapRef.current = null;
@@ -272,12 +178,11 @@ export default function InteractiveMap({
       (a.ville || '').toLowerCase() === targetQuartier.toLowerCase() ||
       (a.quartier || '').toLowerCase().includes(targetQuartier.toLowerCase())
     );
-    const coords = propertyInArea?.lng && propertyInArea?.lat
-      ? [propertyInArea.lng, propertyInArea.lat]
-      : targetQuartier === 'France' ? [2.2137, 46.2276] : getQuartierCoords(targetQuartier);
+    const hasAreaCoordinates = hasCoordinates(propertyInArea?.lng, propertyInArea?.lat);
+    const coords = hasAreaCoordinates ? [Number(propertyInArea.lng), Number(propertyInArea.lat)] : [2.2137, 46.2276];
     mapRef.current.flyTo({
       center: coords,
-      zoom: targetQuartier === 'France' ? 5.2 : 11.5,
+      zoom: targetQuartier === 'France' || !hasAreaCoordinates ? 5.2 : 11.5,
       speed: 1.3,
       curve: 1.1,
       essential: true,
@@ -300,7 +205,7 @@ export default function InteractiveMap({
     }
 
     // Add Annonce Markers
-    annonces.forEach(a => {
+    annonces.filter(a => hasCoordinates(a.lng, a.lat)).forEach(a => {
       const priceText = fmtPrix(a.prix);
       const isSelected = selectedAnnonce?.id === a.id;
       const score = Math.round(a.matchScore ?? a.score ?? 0);
@@ -330,9 +235,9 @@ export default function InteractiveMap({
       el.addEventListener('click', (e) => {
         e.stopPropagation();
         onSelectAnnonce(a);
-        if (mapRef.current && a.lng && a.lat) {
+        if (mapRef.current && hasCoordinates(a.lng, a.lat)) {
           mapRef.current.easeTo({
-            center: [a.lng, a.lat],
+            center: [Number(a.lng), Number(a.lat)],
             zoom: Math.max(mapRef.current.getZoom(), 13.8),
             duration: 600,
           });
@@ -341,7 +246,7 @@ export default function InteractiveMap({
 
       try {
         const marker = new MapClass.Marker({ element: el, anchor: 'bottom' })
-          .setLngLat([a.lng, a.lat])
+          .setLngLat([Number(a.lng), Number(a.lat)])
           .addTo(mapRef.current);
         markersRef.current.push(marker);
       } catch (err) {
@@ -352,34 +257,6 @@ export default function InteractiveMap({
 
   return (
     <div className={`interactive-map-wrapper ${className} ${isExpanded ? 'map-fullscreen' : ''}`}>
-      {/* ── TOP-LEFT FLOATING LEGEND (Inspired by Reference) ── */}
-      <div className="map-legend-card">
-        <h5 className="legend-title">Légende</h5>
-        <div className="legend-item">
-          <span className="legend-box gold-box" />
-          <div className="legend-desc">
-            <strong>Prioritaire - Meilleur accord</strong>
-            <span>exigences & préférences communes</span>
-          </div>
-        </div>
-        <div className="legend-item">
-          <span className="legend-box silver-box" />
-          <div className="legend-desc">
-            <strong>Argent - Compromis possible</strong>
-            <span>exigences tenues, une préférence à céder</span>
-          </div>
-        </div>
-        <div className="legend-item">
-          <span className="legend-pill-demo">280k €</span>
-          <div className="legend-desc">
-            <span>Annonce, prix FAI calculé</span>
-          </div>
-        </div>
-        <div className="legend-footer-note">
-          Calculé pour votre recherche. Données d’annonces nationales.
-        </div>
-      </div>
-
       {/* ── TOP-RIGHT EXPAND / SHRINK BUTTON ── */}
       <button
         type="button"
@@ -389,27 +266,6 @@ export default function InteractiveMap({
       >
         <span>{isExpanded ? '⛶ Réduire' : '⛶ Agrandir la carte'}</span>
       </button>
-
-      {/* ── INITIAL CONTEXT BANNER: LA CARTE SUIT VOTRE CONVERSATION ── */}
-      {showGuide && (
-        <div className="map-conversation-guide-card">
-          <button className="guide-close-btn" onClick={() => setShowGuide(false)}>✕</button>
-          <h4>La carte suit votre conversation</h4>
-          <p>
-            Décrivez votre projet à droite : les secteurs et les annonces apparaîtront ici, avec l'explication de chaque compromis.
-          </p>
-        </div>
-      )}
-
-      {/* ── SECTOR ACCORD BADGES (ON MAP) ── */}
-      {targetQuartier && (
-        <div className="map-accord-badge gold-accord">
-          <div>
-            <div className="accord-label">MEILLEUR ACCORD</div>
-            <div className="accord-name">{targetQuartier.split('-')[0].trim()}</div>
-          </div>
-        </div>
-      )}
 
       <div ref={containerRef} className="interactive-map-canvas" />
 

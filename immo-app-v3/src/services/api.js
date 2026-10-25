@@ -28,8 +28,8 @@ function normalizeNationalListing(listing) {
     img: listing.photos?.[0] || listing.img,
     achatLocation: 'Achat',
     prixM2: listing.prix && listing.surface ? Math.round(listing.prix / listing.surface) : null,
-    lng: listing.lon,
-    lat: listing.lat,
+    lng: Number(listing.lon ?? listing.lng),
+    lat: Number(listing.lat),
     backend_score: listing.match?.score ?? listing.backend_score,
     matchDetail: listing.match?.detail,
   };
@@ -158,7 +158,22 @@ export async function predictPrice(features) {
 }
 
 /**
- * Get the direct download URL for a property PDF appraisal report
+ * The DVF appraisal endpoint only knows the historical local catalogue, whose
+ * records use numeric ids. National listings come from partner sources and
+ * must lead back to their source page instead of a non-existent DVF report.
+ */
+export function isLegacyDvfProperty(listing) {
+  return Boolean(listing)
+    && !listing.id_source
+    && /^\d+$/.test(String(listing.id ?? ''));
+}
+
+export function getListingSourceUrl(listing) {
+  return listing?.url_source || listing?.lien || null;
+}
+
+/**
+ * Get the direct download URL for a legacy property PDF appraisal report.
  */
 export function getReportUrl(propId) {
   return `${API_BASE_URL}/api/report/${propId}`;

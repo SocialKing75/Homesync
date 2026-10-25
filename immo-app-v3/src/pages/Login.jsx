@@ -4,7 +4,7 @@ import { useApp, computeScore } from '../context/AppContext';
 import { getReportUrl } from '../services/api';
 import HomeSyncLogo from '../components/HomeSyncLogo';
 import LandingChat from '../components/LandingChat';
-import InteractiveMap, { getQuartierCoords } from '../components/InteractiveMap';
+import InteractiveMap from '../components/InteractiveMap';
 import PropertyDetailBreakdown from '../components/PropertyDetailBreakdown';
 import InviteModal from '../components/InviteModal';
 import AgenceMessageModal from '../components/AgenceMessageModal';
@@ -35,21 +35,23 @@ export default function Login() {
 
   // Scored properties with coordinates
   const scoredAnnonces = useMemo(() => {
-    return annonces.map((a, index) => {
-      const base = Number.isFinite(a.lng) && Number.isFinite(a.lat)
-        ? [a.lng, a.lat]
-        : getQuartierCoords(a.quartier || a.ville);
-      const jitterLng = ((index * 17) % 100 - 50) * 0.00012;
-      const jitterLat = ((index * 31) % 100 - 50) * 0.00010;
+    return annonces.map(a => {
+      const lng = Number(a.lng);
+      const lat = Number(a.lat);
+      const hasExactLocation = Number.isFinite(lng) && Number.isFinite(lat)
+        && lng >= -6 && lng <= 10 && lat >= 41 && lat <= 52;
+      // Never invent a Toulon fallback for a national listing: a marker is only
+      // displayed when its source provides a real French coordinate pair.
+      if (!hasExactLocation) return null;
       const score = computeScore(a, profil);
       return {
         ...a,
         score,
         matchScore: score,
-        lng: base[0] + jitterLng,
-        lat: base[1] + jitterLat,
+        lng,
+        lat,
       };
-    }).sort((a, b) => b.score - a.score);
+    }).filter(Boolean).sort((a, b) => b.score - a.score);
   }, [annonces, profil]);
 
   const goldenMatchCount = useMemo(() => {

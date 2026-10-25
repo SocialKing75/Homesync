@@ -541,6 +541,7 @@
 /* HomeSync workspace refinement: one calm, compact navigation system and
    balanced proportions between the conversation and the national map. */
 .workspace-nav{height:68px;padding:0 24px;gap:20px;box-sizing:border-box;flex-shrink:0}.workspace-brand{padding:0;border:0;cursor:pointer}.workspace-project{padding-left:18px}.workspace-links{gap:2px}.workspace-links button{padding:8px 11px}.workspace-people button{padding:8px 11px}.landing-workspace{height:calc(100vh - 68px)}.workspace-chat-pane{width:460px;max-width:40%;padding:12px;box-sizing:border-box}.workspace-chat-pane .landing-chat-card{border-radius:16px}.map-context-floating-bar{top:14px;left:14px;padding:8px 14px;gap:10px}.map-selected-golden-card{right:18px;bottom:18px;width:320px}@media(max-width:900px){.workspace-nav{height:64px;padding:0 16px;gap:12px}.landing-workspace{height:calc(100vh - 64px)}.workspace-chat-pane{width:420px;max-width:48%;padding:10px}}@media(max-width:680px){.workspace-nav{height:60px}.landing-workspace{height:calc(100vh - 60px)}.workspace-chat-pane{max-width:100%;width:100%;padding:8px}.workspace-map-pane{display:none}.workspace-links{display:none}.workspace-project{display:none}.workspace-people{margin-left:auto}.map-selected-golden-card{width:calc(100% - 28px);right:14px;bottom:14px}}
+.workspace-brand>.homesync-logo{display:inline-flex;width:auto;height:auto;background:transparent}.workspace-brand .homesync-logo-image{width:auto;height:35px}.workspace-project{min-width:205px;white-space:nowrap}
 
 .preview-btn-inspect {
   flex: 1.2;

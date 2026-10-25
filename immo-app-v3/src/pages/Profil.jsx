@@ -52,23 +52,31 @@ export default function Profil() {
       <div className="profil-content">
         <div className="profil-intro">
           <div>
-            <span className="profil-eyebrow">Préférences de recherche</span>
-            <h1>Bonjour {user?.nom || user?.login || 'Investisseur'}.</h1>
-            <p>Affinez votre projet : vos recommandations se mettent à jour selon ces critères.</p>
+            <span className="profil-eyebrow">Profil de projet</span>
+            <h1>Mon projet immobilier</h1>
+            <p>Les critères utilisés pour organiser votre recherche et vos correspondances.</p>
           </div>
           <button className={`save-btn ${saved ? 'saved' : ''}`} onClick={handleSave}>
-            <span>{saved ? '✓' : '↗'}</span> {saved ? 'Profil sauvegardé' : 'Enregistrer les préférences'}
+            {saved ? 'Préférences enregistrées' : 'Enregistrer les préférences'}
           </button>
         </div>
 
+        <section className="profil-stats" aria-label="Synthèse du projet">
+          <article><span className="stat-value">{formatEuro(form.prixMax)}</span><span className="stat-label">Budget maximum</span><i className="stat-bars navy" /></article>
+          <article><span className="stat-value">T{form.pieces}</span><span className="stat-label">Configuration recherchée</span><i className="stat-bars violet" /></article>
+          <article><span className="stat-value">{selectedQuartiers || 'France'}</span><span className="stat-label">{selectedQuartiers ? 'secteur(s) sélectionné(s)' : 'périmètre de recherche'}</span><i className="stat-bars copper" /></article>
+        </section>
+
         <div className="profil-layout">
           <aside className="profil-summary">
-            <div className="summary-avatar">{(user?.nom || user?.login || 'I').charAt(0).toUpperCase()}</div>
-            <p className="summary-label">Votre recherche</p>
-            <h2>{form.typeBien || 'Bien immobilier'}</h2>
+            <div className="summary-avatar">{(user?.nom || user?.login || 'I').split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase()}</div>
+            <p className="summary-label">Projet actif</p>
+            <h2>{user?.nom || user?.login || 'Votre projet'}</h2>
+            <span className="summary-status">Recherche en cours</span>
+            <button className="summary-edit" onClick={() => document.getElementById('pieces')?.focus()}>Modifier les préférences</button>
             <div className="summary-list">
-              <div><span>Budget</span><strong>{formatEuro(form.prixMax)}</strong></div>
-              <div><span>Secteurs</span><strong>{selectedQuartiers ? `${selectedQuartiers} sélectionné${selectedQuartiers > 1 ? 's' : ''}` : 'Toute la France'}</strong></div>
+              <div><span>Recherche</span><strong>{form.typeBien}</strong></div>
+              <div><span>Localisation</span><strong>{selectedQuartiers ? `${selectedQuartiers} secteur${selectedQuartiers > 1 ? 's' : ''}` : 'Toute la France'}</strong></div>
               <div><span>Projet</span><strong>{form.achatLocation}</strong></div>
             </div>
             <div className="summary-tip">Les biens les plus compatibles seront prioritaires dans vos correspondances.</div>
@@ -76,7 +84,7 @@ export default function Profil() {
 
           <div className="profil-card">
           <div className="profil-header">
-            <div><h2 className="profil-title">Les essentiels</h2><p>Définissez le cadre de votre prochain achat.</p></div>
+            <div><h2 className="profil-title">Préférences de recherche</h2><p>Définissez les critères qui comptent vraiment pour vous.</p></div>
           </div>
 
           {/* Grille critères */}

@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp, computeScoreDetailed } from '../context/AppContext';
-import { getReportUrl } from '../services/api';
+import { getListingSourceUrl, getReportUrl, isLegacyDvfProperty } from '../services/api';
 import './TinderMatch.css';
 
 export default function TinderMatch() {
@@ -422,14 +422,25 @@ export default function TinderMatch() {
               >
                 Consulter la fiche complète
               </button>
-              <a
-                href={getReportUrl(matchCelebration.id)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="celebrate-btn-pdf"
-              >
-                📄 Rapport d'expertise PDF
-              </a>
+              {isLegacyDvfProperty(matchCelebration) ? (
+                <a
+                  href={getReportUrl(matchCelebration.id)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="celebrate-btn-pdf"
+                >
+                  Rapport d’expertise DVF
+                </a>
+              ) : getListingSourceUrl(matchCelebration) ? (
+                <a
+                  href={getListingSourceUrl(matchCelebration)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="celebrate-btn-pdf"
+                >
+                  Consulter l’annonce source
+                </a>
+              ) : null}
               <button
                 className="celebrate-btn-continue"
                 onClick={() => setMatchCelebration(null)}

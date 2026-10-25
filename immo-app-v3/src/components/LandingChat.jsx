@@ -1,15 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useApp, QUARTIERS_TOULON, computeScoreDetailed } from '../context/AppContext';
 import { fetchChatSearchResults, searchNationalProperties, sendChatMessage } from '../services/api';
+import HomeSyncLogo from './HomeSyncLogo';
 import './LandingChat.css';
-
-const QUICK_PROMPTS = [
-  { label: 'T3 au Mourillon avec balcon (< 280k€)', text: 'Je cherche un T3 lumineux au Mourillon avec balcon pour maximum 280 000 €.' },
-  { label: 'Investissement locatif rentable (< 140k€)', text: 'Je veux un appartement rentable à Nantes sous 140 000 € pour du locatif.' },
-  { label: 'Maison familiale avec jardin', text: 'Je recherche une maison ou grand bien avec jardin au calme pour 450 000 €.' },
-  { label: 'Studio / T2 Centre-Ville (< 120k€)', text: 'Un studio ou T2 en Centre-Ville ou Haute-Ville pour moins de 120 000 €.' },
-];
 
 export default function LandingChat({
   onQuartierSelect = () => {},
@@ -20,11 +13,8 @@ export default function LandingChat({
   onOpenContactAgency = null,
 }) {
   const { profil, setProfil, annonces, setAnnonces, setActiveSearch, setUser } = useApp();
-  const navigate = useNavigate();
-
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef(null);
   const addedCollabRef = useRef(false);
   const formStartedAt = useRef(Date.now() - 2500);
@@ -35,7 +25,7 @@ export default function LandingChat({
     {
       id: 1,
       sender: 'ai',
-      text: "Bonjour Marc Ivan. Décrivez votre projet comme à un ami : ville, type de bien, budget, quartier, ce qui est indispensable et ce qui serait un plus. Je m'occupe de la carte et de vos correspondances prioritaires.",
+      text: "Bonjour Marc Ivan. Décrivez simplement votre projet : ville, budget, type de bien et préférences. Je mets la carte et vos correspondances à jour.",
       timestamp: 'À l\'instant',
     },
   ]);
@@ -204,8 +194,6 @@ export default function LandingChat({
         try { nationalResults = await searchNationalProperties(searchQuery, 50); } catch { /* conversation remains usable */ }
       }
       if (nationalResults.length) setAnnonces(nationalResults);
-      const matchCount = response.resultats?.count || nationalResults.length || annonces.length;
-      const topMatch = nationalResults[0] || annonces[0];
       setActiveSearch({
         query: searchQuery,
         searchId: searchId || null,
@@ -215,7 +203,7 @@ export default function LandingChat({
       });
       setMessages(prev => [...prev, {
         id: Date.now() + 1, sender: 'ai', text: response.reply || 'Votre recherche a été mise à jour.',
-        actionCard: { matchCount, topMatch, profil: updatedProfil }, timestamp: 'À l’instant',
+        timestamp: 'À l’instant',
       }]);
     } catch {
       // Keep a local fallback only when the backend cannot be reached.
@@ -226,7 +214,7 @@ export default function LandingChat({
       if (primaryDistrict) onQuartierSelect(primaryDistrict);
       const matchingProps = annonces.filter(p => computeScoreDetailed(p, updatedProfil).total >= 65);
       setActiveSearch({ query: text, resultCount: matchingProps.length, location: primaryDistrict || null, updatedAt: Date.now(), fallback: true });
-      setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: 'Le service de recherche est momentanément indisponible. Les résultats locaux ont été mis à jour.', actionCard: { matchCount: matchingProps.length || annonces.length, topMatch: matchingProps[0] || annonces[0], profil: updatedProfil }, timestamp: 'À l’instant' }]);
+      setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: 'La recherche nationale est indisponible pour le moment. Vos préférences ont bien été mises à jour.', timestamp: 'À l’instant' }]);
     } finally {
       setIsTyping(false);
     }
@@ -286,91 +274,15 @@ export default function LandingChat({
     }, 600); */
   };
 
-  const handleLaunchMatchingAction = (targetTab = 'tinder') => {
-    setUser(prev => ({
-      ...prev,
-      nom: prev?.nom || 'Marc Ivan',
-      email: prev?.email || 'mariojaris2@gmail.com',
-      profil: 'Acheteur',
-    }));
-
-    if (onLaunchMatching) {
-      onLaunchMatching(targetTab);
-    } else {
-      navigate(`/accueil?tab=${targetTab}`);
-    }
-  };
-
   return (
     <div className="landing-chat-card">
-      {/* ── CHAT HEADER ── */}
       <div className="chat-card-header">
         <div className="chat-header-agent">
-          <div className="agent-avatar-wrap">
-            <span className="agent-avatar-emoji">T</span>
-            <span className="agent-status-dot" />
-          </div>
+          <HomeSyncLogo compact />
           <div>
-            <div className="agent-name">HomeSync Assistant</div>
-            <div className="agent-desc">Conseiller immobilier · recherche nationale</div>
+            <div className="agent-name">Assistant HomeSync</div>
+            <div className="agent-desc">Recherche immobilière nationale</div>
           </div>
-        </div>
-
-        <button
-          className="chat-fast-pass-btn gold-fast-pass"
-          onClick={() => handleLaunchMatchingAction('tinder')}
-          title="Accéder directement au Tinder Matcher"
-        >
-          <span>Voir les correspondances</span>
-          <span>→</span>
-        </button>
-      </div>
-
-      {/* ── PRIVACY SUBHEADER (Inspired by Reference) ── */}
-      <div className="chat-privacy-subheader">
-        <div className="privacy-left">
-          <span className="privacy-lock-badge">P</span>
-          <div className="privacy-text-wrap">
-            <span className="privacy-main-label">Conversation privée</span>
-            <span className="privacy-sub-label">
-              Marc Ivan{coUsers.length > 0 ? ` & ${coUsers.map(u => u.name).join(', ')}` : ''} et l'assistant IA · jamais transmise aux annonceurs
-            </span>
-          </div>
-        </div>
-        {onOpenInvite && (
-          <button
-            type="button"
-            className="chat-invite-pill-btn"
-            onClick={onOpenInvite}
-            title="Inviter un partenaire ou co-acquéreur"
-          >
-            + Inviter
-          </button>
-        )}
-      </div>
-
-      {/* ── STRUCTURED COMPREHENSION BOX (Inspired by Reference) ── */}
-      <div className="chat-comprehension-box">
-        <div className="ccb-header">
-          <span className="ccb-icon">i</span>
-          <strong>Ce que j'ai compris</strong>
-        </div>
-        <div className="ccb-line">
-          <span className="ccb-tag tag-indispensable">Indispensable :</span>
-          <span>T{profil.pieces} · ≤ {profil.prixMax?.toLocaleString('fr-FR')} € · {profil.typeBien}</span>
-        </div>
-        <div className="ccb-line">
-          <span className="ccb-tag tag-souhaite">Souhaité (Marc) :</span>
-          <span>{profil.quartiers?.length ? profil.quartiers[0].split('-')[0].trim() : 'Le Mourillon / Cap Brun'} · Balcon / Terrasse</span>
-        </div>
-        {coUsers.length > 0 && (
-          <div className="ccb-line">
-            <span className="ccb-tag tag-alex">Souhaité ({coUsers[0].name}) :</span>
-            <span>≤ 20 min du Port / Arsenal · Mobilité douce</span>
-          </div>
-        )}
-        <div className="ccb-footer-hint">
-          Pour changer un critère, dites-le simplement dans la conversation.
         </div>
       </div>
 
@@ -402,13 +314,7 @@ export default function LandingChat({
 
           return (
             <div key={msg.id} className={`chat-bubble-wrap bubble-${msg.sender}`}>
-              {msg.sender === 'ai' && (
-                <div className="chat-avatar-mini">T</div>
-              )}
               <div className="chat-bubble-content">
-                {msg.sender === 'user' && (
-                  <span className="user-name-tag">Marc Ivan (vous)</span>
-                )}
                 <div className="chat-bubble-text">
                   {msg.text.split('\n').map((line, idx) => (
                     <span key={idx}>
@@ -417,44 +323,6 @@ export default function LandingChat({
                     </span>
                   ))}
                 </div>
-
-                {/* Action Card inside AI message */}
-                {msg.actionCard && (
-                  <div className="chat-action-card golden-card">
-                    <div className="cac-top">
-                      <span className="cac-fire">{msg.actionCard.matchCount}</span>
-                      <div>
-                        <div className="cac-title">{msg.actionCard.matchCount} opportunités prioritaires</div>
-                        <div className="cac-sub">Synchronisées sur la carte interactive</div>
-                      </div>
-                    </div>
-
-                    <div className="cac-buttons">
-                      <button
-                        className="cac-btn cac-btn-tinder"
-                        onClick={() => handleLaunchMatchingAction('tinder')}
-                      >
-                        Voir les correspondances ({msg.actionCard.matchCount})
-                      </button>
-                      <button
-                        className="cac-btn cac-btn-map"
-                        onClick={() => handleLaunchMatchingAction('carte')}
-                      >
-                        Explorer la carte
-                      </button>
-                      {onOpenContactAgency && msg.actionCard.topMatch && (
-                        <button
-                          className="cac-btn cac-btn-agency"
-                          onClick={() => onOpenContactAgency(msg.actionCard.topMatch)}
-                        >
-                          Préparer une visite
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <span className="chat-bubble-time">{msg.timestamp}</span>
               </div>
             </div>
           );
@@ -474,23 +342,6 @@ export default function LandingChat({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* ── QUICK PROMPTS CHIPS ── */}
-      <div className="chat-quick-prompts">
-        <span className="qp-label">Suggestions rapides :</span>
-        <div className="qp-chips-scroll">
-          {QUICK_PROMPTS.map((qp, i) => (
-            <button
-              key={i}
-              className="qp-chip"
-              onClick={() => handleSend(qp.text)}
-            >
-              {qp.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── INPUT BOX WITH VOICE BUTTON (Inspired by Reference) ── */}
       <form
         className="chat-input-bar"
         onSubmit={e => {
@@ -506,32 +357,14 @@ export default function LandingChat({
           onChange={e => setInput(e.target.value)}
         />
         <button
-          type="button"
-          className={`chat-mic-btn ${isRecording ? 'recording' : ''}`}
-          onClick={() => {
-            setIsRecording(!isRecording);
-            if (!isRecording) {
-              setInput("On cherche un T3 lumineux au Mourillon ou Cap Brun avec extérieur sous 280 000 €");
-              setTimeout(() => setIsRecording(false), 1400);
-            }
-          }}
-          title="Dictée vocale (simulation micro)"
-        >
-          <span aria-hidden="true">●</span>
-        </button>
-        <button
           type="submit"
           className="chat-send-btn"
           disabled={!input.trim()}
           title="Envoyer votre message"
         >
-          <span>Envoyer</span>
-          <span className="send-arrow">➔</span>
+          Envoyer
         </button>
       </form>
-      <div className="chat-footer-author-hint">
-        Vous écrivez en tant que Marc Ivan · visible par l'assistant
-      </div>
     </div>
   );
 }

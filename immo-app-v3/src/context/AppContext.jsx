@@ -7,6 +7,7 @@ import {
   fetchKnnOpportunities,
   searchNationalProperties,
 } from '../services/api';
+import { recordClientActivity } from '../services/agencyWorkspace';
 
 const AppContext = createContext();
 
@@ -195,11 +196,13 @@ export function AppProvider({ children }) {
   }, [loadData]);
 
   const toggleFavori = (annonce) => {
+    const wasFavorite = favoris.some((favorite) => favorite.id === annonce.id);
     setFavoris(prev =>
       prev.find(f => f.id === annonce.id)
         ? prev.filter(f => f.id !== annonce.id)
         : [...prev, annonce]
     );
+    recordClientActivity({ type: wasFavorite ? 'selection_removed' : 'selection_added', annonce, clientName: user?.nom || 'Marc Ivan' });
   };
 
   const isFavori = (id) => favoris.some(f => f.id === id);

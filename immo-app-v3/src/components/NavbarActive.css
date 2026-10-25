@@ -1,0 +1,2 @@
+.nav-links button.active{position:relative;background:#eef3f8;color:#203b64;box-shadow:inset 0 -2px #c67a26}
+.nav-links button.active::after{content:'';position:absolute;right:11px;bottom:0;left:11px;height:2px;border-radius:2px;background:#c67a26}
