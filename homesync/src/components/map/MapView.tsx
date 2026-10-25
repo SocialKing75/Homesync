@@ -2,10 +2,12 @@
 import maplibregl, { type GeoJSONSource, type LngLatBoundsLike, Map as MlMap, Marker, Popup } from 'maplibre-gl'
 import { useStore } from '../../store/store'
 import { applyHomeSyncTheme } from './theme'
+import { GOLD_FX } from './goldFx'
+import { GoldDustLayer } from './goldDust'
 import { CITIES, FRANCE_CENTER, FRANCE_ZOOM } from '../../data/cities'
 import { getListings, getListing } from '../../services'
 import type { Listing, MatchTier } from '../../types'
-import { circle, closeRing, type LngLat } from '../../lib/geo'
+import { circle, closeRing } from '../../lib/geo'
 import { totalCost } from '../../lib/matching'
 
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty'
@@ -31,6 +33,7 @@ export default function MapView() {
   const avatarMarkers = useRef<Marker[]>([])
   const previewMarkers = useRef<Marker[]>([])
   const hoverPopup = useRef<Popup | null>(null)
+  const goldDust = useRef<GoldDustLayer | null>(null)
 
   // Refs de valeurs « fraîches » pour les handlers impératifs.
   const stateRef = useRef(state)
@@ -75,26 +78,47 @@ export default function MapView() {
       if (map.getSource('zones')) return // déjà initialisé
       // Source des zones de correspondance (calculées par l'application).
       map.addSource('zones', { type: 'geojson', data: emptyFC() })
+      // Halo doux (sous le remplissage) : trait large et flou, Gold uniquement.
+      // Seul le halo peut dépasser légèrement les contours. Les zones Argent
+      // restent sobres (aucun halo).
+      map.addLayer({
+        id: 'zones-gold-halo',
+        type: 'line',
+        source: 'zones',
+        filter: ['all', ['==', ['geometry-type'], 'Polygon'], ['==', ['get', 'tier'], 'gold']],
+        paint: {
+          'line-color': GOLD_FX.colors.luminous,
+          'line-width': GOLD_FX.halo.width,
+          'line-blur': GOLD_FX.halo.blur,
+          'line-opacity': GOLD_FX.halo.opacity,
+        },
+      })
       map.addLayer({
         id: 'zones-fill',
         type: 'fill',
         source: 'zones',
         filter: ['==', ['geometry-type'], 'Polygon'],
         paint: {
-          'fill-color': ['match', ['get', 'tier'], 'gold', '#B88A24', 'silver', '#8193A6', '#B88A24'],
-          'fill-opacity': 0.22,
+          // Or profond translucide côté Gold (les rues restent lisibles).
+          'fill-color': ['match', ['get', 'tier'], 'gold', GOLD_FX.colors.deep, 'silver', '#8193A6', GOLD_FX.colors.deep],
+          'fill-opacity': ['match', ['get', 'tier'], 'gold', GOLD_FX.fill.opacity, 'silver', 0.22, GOLD_FX.fill.opacity],
         },
       })
+      // Particules champagne (couche WebGL) : au-dessus du remplissage, sous les
+      // libellés et les marqueurs HTML (repères de prix cliquables).
+      goldDust.current = new GoldDustLayer('zones-gold-dust')
+      map.addLayer(goldDust.current)
       map.addLayer({
         id: 'zones-line',
         type: 'line',
         source: 'zones',
         filter: ['==', ['geometry-type'], 'Polygon'],
         paint: {
-          'line-color': ['match', ['get', 'tier'], 'gold', '#8f6a16', 'silver', '#5f7085', '#8f6a16'],
-          'line-width': 1.8,
+          // Contour fin : or lumineux côté Gold, gris-bleu sobre côté Argent.
+          'line-color': ['match', ['get', 'tier'], 'gold', GOLD_FX.colors.luminous, 'silver', '#5f7085', GOLD_FX.colors.luminous],
+          'line-width': ['match', ['get', 'tier'], 'gold', GOLD_FX.line.width, 'silver', 1.8, GOLD_FX.line.width],
           'line-dasharray': [2, 1.4],
-          'line-opacity': 0.75,
+          'line-opacity': ['match', ['get', 'tier'], 'gold', GOLD_FX.line.opacity, 'silver', 0.75, GOLD_FX.line.opacity],
         },
       })
       map.addLayer({
@@ -163,6 +187,8 @@ export default function MapView() {
       Object.values(clusterMarkers.current).forEach((m) => m.remove())
       priceMarkers.current = {}
       clusterMarkers.current = {}
+      goldDust.current?.destroy() // retire la couche WebGL + écouteurs
+      goldDust.current = null
       map.remove()
       mapRef.current = null
       readyRef.current = false
@@ -200,6 +226,7 @@ export default function MapView() {
     if (!src) return
     if (!s.criteria.cities.length) {
       src.setData(emptyFC())
+      goldDust.current?.setZones([])
       return
     }
     const features: GeoJSON.Feature[] = []
@@ -207,20 +234,20 @@ export default function MapView() {
     // Ce sont des zones de correspondance calculées, pas des temps de trajet.
     const build = (tier: 'gold' | 'silver', listings: Listing[], label: string) => {
       if (listings.length === 0) return
-      const byCity: Record<string, LngLat[]> = {}
-      for (const l of listings) (byCity[l.city] ??= []).push([l.lng, l.lat])
-      for (const pts of Object.values(byCity)) {
+      const byCity: Record<string, Listing[]> = {}
+      for (const l of listings) (byCity[l.city] ??= []).push(l)
+      for (const group of Object.values(byCity)) {
         // Une auréole translucide autour de chaque annonce (elles se fondent).
-        for (const p of pts) {
+        for (const l of group) {
           features.push({
             type: 'Feature',
-            geometry: { type: 'Polygon', coordinates: [closeRing(circle(p, 1.15))] },
-            properties: { tier },
+            geometry: { type: 'Polygon', coordinates: [closeRing(circle([l.lng, l.lat], 1.15))] },
+            properties: { tier, listingId: l.id },
           })
         }
         // Un seul libellé par groupe, au centre de gravité.
-        const cx = pts.reduce((a, p) => a + p[0], 0) / pts.length
-        const cy = pts.reduce((a, p) => a + p[1], 0) / pts.length
+        const cx = group.reduce((a, l) => a + l.lng, 0) / group.length
+        const cy = group.reduce((a, l) => a + l.lat, 0) / group.length
         features.push({
           type: 'Feature',
           geometry: { type: 'Point', coordinates: [cx, cy] },
@@ -231,6 +258,24 @@ export default function MapView() {
     build('silver', s.results.silver, 'Compromis possible')
     build('gold', s.results.gold, 'Meilleur accord')
     src.setData({ type: 'FeatureCollection', features })
+    // Les particules ne vivent que dans les vrais polygones Gold.
+    goldDust.current?.setZones(
+      features.filter((f) => f.properties?.tier === 'gold' && f.geometry.type === 'Polygon'),
+    )
+    updateGoldHalo()
+  }
+
+  // La sélection renforce légèrement le halo de la zone Gold concernée.
+  function updateGoldHalo() {
+    const map = mapRef.current
+    if (!map || !map.getLayer('zones-gold-halo')) return
+    const sel = stateRef.current.selectedId
+    map.setPaintProperty('zones-gold-halo', 'line-opacity', [
+      'case',
+      ['==', ['get', 'listingId'], sel ?? '__none__'],
+      GOLD_FX.halo.opacitySelected,
+      GOLD_FX.halo.opacity,
+    ])
   }
 
   // --- Synchronisation des marqueurs HTML --------------------------------
@@ -399,7 +444,7 @@ export default function MapView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.whatIf])
 
-  useEffect(() => { syncMarkers(); layoutMarkers() }, [state.selectedId, state.favorites])
+  useEffect(() => { syncMarkers(); layoutMarkers(); updateGoldHalo() }, [state.selectedId, state.favorites])
 
   // --- Commandes de carte venues du chat ----------------------------------
   useEffect(() => {
